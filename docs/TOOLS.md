@@ -11,7 +11,7 @@ Parallel fan-out, merged hits, per-provider receipts.
 | `query` | str | (required) | Search text |
 | `kinds` | str | `fleet-local,knowledge,serp` | CSV subset |
 | `providers` | str | `""` (all) | CSV allowlist, e.g. `wikipedia,tavily` |
-| `time_filter` | str | `any` | Reserved (Phase 2 freshness); informational |
+| `time_filter` | str | `any` | Freshness window: any/day/week/month/year. Tavily passes it natively, sibling takes hours, OpenSERP appends after:; DDG/Wikipedia run unfiltered and say so. Receipts carry `time_filter_applied` |
 | `limit` | int | `10` | 1..50 merged hits |
 | `mode` | `balanced` \| `any` | `balanced` | `any` = fastest kind with hits wins (receipts still full) |
 

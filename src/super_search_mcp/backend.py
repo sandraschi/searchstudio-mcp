@@ -103,6 +103,7 @@ async def api_search(request):
     mode = request.query_params.get("mode", "balanced")
     if mode not in ("balanced", "any"):
         mode = "balanced"
+    time_filter = request.query_params.get("time_filter", "any")
     from .server import searchops
 
     return JSONResponse(
@@ -113,6 +114,7 @@ async def api_search(request):
             providers=providers,
             limit=limit,
             mode=mode,  # type: ignore[arg-type]
+            time_filter=time_filter,
         )
     )
 

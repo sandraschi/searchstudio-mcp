@@ -1,6 +1,6 @@
 """Shared result contract: every provider kind returns these shapes.
 
-Fan-out, merge, health, and the webapp consume this contract only — they
+Fan-out, merge, health, and the webapp consume this contract only - they
 never touch provider internals. All dicts are JSON-serializable.
 """
 
@@ -10,6 +10,9 @@ from dataclasses import asdict, dataclass, field
 from typing import Literal
 
 ProviderKind = Literal["serp", "knowledge", "fleet-local"]
+
+# time_filter values accepted everywhere. "any" disables filtering.
+TIME_FILTERS = ("any", "day", "week", "month", "year")
 
 
 @dataclass
@@ -40,6 +43,9 @@ class ProviderReceipt:
     error: str = ""
     blocked: bool = False  # engine refused us (rate limit/captcha/IP), not a bug
     configured: bool = True  # False = declared stub (missing key/service)
+    time_filter_applied: bool = False  # True = the requested freshness filter
+    # was actually transmitted to the provider. False with time_filter != any
+    # means "ran unfiltered, said so" - never silent.
 
     def to_dict(self) -> dict:
         return asdict(self)

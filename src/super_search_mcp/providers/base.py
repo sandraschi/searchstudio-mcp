@@ -1,6 +1,6 @@
 """Provider protocol: every provider kind speaks this interface.
 
-A provider returns ``(hits, receipt)`` — results plus a mandatory receipt
+A provider returns ``(hits, receipt)`` - results plus a mandatory receipt
 describing what happened, even on total failure. Fan-out, merge, and health
 consume only this contract.
 """
@@ -25,7 +25,7 @@ class Provider(Protocol):
         ...
 
     async def search(
-        self, query: str, limit: int = 10
+        self, query: str, limit: int = 10, time_filter: str = "any"
     ) -> tuple[list[SearchHit], ProviderReceipt]: ...
 
 
@@ -39,6 +39,7 @@ def _receipt(
     error: str = "",
     blocked: bool = False,
     configured: bool = True,
+    time_filter_applied: bool = False,
 ) -> ProviderReceipt:
     now_ms = int(time.time() * 1000)
     return ProviderReceipt(
@@ -50,6 +51,7 @@ def _receipt(
         error=error,
         blocked=blocked,
         configured=configured,
+        time_filter_applied=time_filter_applied,
     )
 
 

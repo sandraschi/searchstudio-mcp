@@ -46,15 +46,19 @@ async def fanout(
     only: tuple[str, ...] = (),
     db_path=None,
     per_provider_limit: int = 10,
+    time_filter: str = "any",
 ) -> FanoutResult:
     """Run selected providers concurrently, merge, record health, return all."""
+    from .models import TIME_FILTERS
+
+    filt = time_filter if time_filter in TIME_FILTERS else "any"
     selected = [p for p in providers if p.kind in kinds and (not only or p.name in only)]
     if not selected:
         return FanoutResult(query=query)
 
     async def run(p) -> tuple[str, list[SearchHit], ProviderReceipt]:
         try:
-            hits, receipt = await p.search(query, per_provider_limit)
+            hits, receipt = await p.search(query, per_provider_limit, time_filter=filt)
             return p.name, list(hits or []), receipt
         except Exception as e:  # provider bugs must not sink the fan-out
             return (

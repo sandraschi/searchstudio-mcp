@@ -1,12 +1,12 @@
 """SearchStudio MCP server: one portmanteau + one Prefab status card.
 
-Tool surface (deliberately small — Phase 1):
-- ``searchops`` — super_search | provider_health | self_test
-- ``provider_health_app`` — Prefab card twin of provider_health (app=True)
+Tool surface (deliberately small - Phase 1):
+- ``searchops`` - super_search | provider_health | self_test
+- ``provider_health_app`` - Prefab card twin of provider_health (app=True)
 
 All tools are READ_ONLY with openWorldHint (they reach external networks).
 Phase 2/3 operations (aiwatcher_feed, condense) are NOT advertised until
-they exist — no stubs, per TOOL_DESIGN_STANDARDS §15.
+they exist - no stubs, per TOOL_DESIGN_STANDARDS §15.
 """
 
 from __future__ import annotations
@@ -83,22 +83,24 @@ async def searchops(
     Fans out across fleet-local knowledge (arxiv-mcp), curated sources
     (Wikipedia), and web search (OpenSERP-local, DuckDuckGo, Tavily) in
     parallel, merges by kind priority (local first), and reports one receipt
-    per provider — dead pipes are skipped AND reported, never silent zeros.
+    per provider - dead pipes are skipped AND reported, never silent zeros.
 
     Args:
         operation: super_search (default) | provider_health | self_test.
         query: Search text. Required for super_search.
         kinds: CSV subset of fleet-local,knowledge,serp (default all).
         providers: CSV provider allowlist, e.g. "wikipedia,tavily". Empty = all.
-        time_filter: any (default). Reserved for provider-native freshness
-            (news/time-boxed search, Phase 2); accepted now, informational.
+        time_filter: any (default) | day | week | month | year. Tavily passes
+            it natively, the sibling takes hours, OpenSERP appends an after:
+            operator; DuckDuckGo and Wikipedia run unfiltered and say so.
+            Every receipt carries time_filter_applied.
         limit: Max merged hits, 1..50 (default 10). Documented cap.
         mode: balanced (merged best-of-all, default) | any (fastest kind
             with hits wins, full receipts still returned).
         window_hours: provider_health lookback (default 24).
 
     Returns:
-        super_search: {query, total, hits[], receipts[]} — hits bounded by
+        super_search: {query, total, hits[], receipts[]} - hits bounded by
         limit; receipts carry per-provider ok/latency_ms/count/error/blocked.
         provider_health: {providers[]} rolling scoreboard + configured flags.
         self_test: {matrix[]} 3 canonical probes x providers with receipts.
@@ -123,6 +125,7 @@ async def searchops(
                 kinds=_parse_csv(kinds, kinds_all) or tuple(kinds_all),
                 only=_parse_csv(providers, names),
                 db_path=_db_path(),
+                time_filter=time_filter,
             )
             payload = result.to_dict()
             if mode == "any":
@@ -133,7 +136,7 @@ async def searchops(
                         payload["total"] = len(kind_hits)
                         payload["mode_winner_kind"] = kind
                         break
-            payload["time_filter"] = time_filter  # informational in Phase 1
+            payload["time_filter"] = time_filter
             return {"success": True, **payload}
         if operation == "provider_health":
             return {
@@ -141,7 +144,7 @@ async def searchops(
                 "window_hours": window_hours,
                 "providers": _fanout.health(_db_path(), window_hours=window_hours),
                 "configured": {p.name: p.configured for p in providers_all},
-                "note": "Empty scoreboard means no searches recorded yet — run super_search first.",
+                "note": "Empty scoreboard means no searches recorded yet - run super_search first.",
             }
         if operation == "self_test":
             probes = [

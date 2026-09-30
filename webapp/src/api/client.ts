@@ -17,6 +17,7 @@ export interface Receipt {
   error: string;
   blocked: boolean;
   configured: boolean;
+  time_filter_applied: boolean;
 }
 
 export interface ProviderInfo {

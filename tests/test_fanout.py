@@ -44,16 +44,18 @@ class _Stub:
         self.kind = kind
         self._hits = hits or []
         self._fail = fail
+        self.last_time_filter = "unset"
 
     @property
     def configured(self) -> bool:
         return True
 
-    async def search(self, query: str, limit: int = 10):
+    async def search(self, query: str, limit: int = 10, time_filter: str = "any"):
         from super_search_mcp.providers.base import _now_ms, _receipt
 
         if self._fail:
             raise RuntimeError("boom")
+        self.last_time_filter = time_filter
         hits = self._hits[:limit]
         return hits, _receipt(self.name, self.kind, ok=True, hits=hits, started_ms=_now_ms())
 
@@ -83,11 +85,26 @@ async def test_fanout_empty_selection() -> None:
     assert out.hits == [] and out.receipts == []
 
 
+async def test_fanout_forwards_time_filter() -> None:
+    good = _Stub("good", "serp", [_hit("https://g.test/", "serp", "good")])
+    await F.fanout([good], "q", db_path=None, time_filter="week")
+    assert good.last_time_filter == "week"
+
+
 def test_dispatch_contract_keywords() -> None:
-    """Every provider must accept (query, limit=...) by keyword (arvix lesson 2026-09-30)."""
+    """Every provider must accept (query, limit=..., time_filter=...) by keyword.
+
+    Guards the 2026-09-30 positional-dispatch bug where ``limit`` landed in
+    ``search_biorxiv``'s ``server`` slot, serving medRxiv as bioRxiv.
+    """
     settings = Settings()
     for p in build_providers(settings):
         sig = inspect.signature(p.search)
         params = list(sig.parameters.values())
         assert params[0].name in ("query", "self") or "query" in sig.parameters, p.name
-        assert "limit" in sig.parameters, f"{p.name} missing limit"
+        for name in ("limit", "time_filter"):
+            assert name in sig.parameters, f"{p.name} missing {name}"
+            assert sig.parameters[name].kind in (
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                inspect.Parameter.KEYWORD_ONLY,
+            ), f"{p.name}.{name} not keyword-callable"

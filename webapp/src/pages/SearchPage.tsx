@@ -27,6 +27,7 @@ export default function SearchPage() {
     "serp",
   ]);
   const [limit, setLimit] = useState(10);
+  const [timeFilter, setTimeFilter] = useState("any");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<SearchResponse | null>(null);
   const [error, setError] = useState("");
@@ -39,7 +40,7 @@ export default function SearchPage() {
       setError("");
       try {
         const data = await apiGet<SearchResponse>(
-          `/api/search?q=${encodeURIComponent(text)}&kinds=${kinds.join(",")}&limit=${limit}`,
+          `/api/search?q=${encodeURIComponent(text)}&kinds=${kinds.join(",")}&limit=${limit}&time_filter=${timeFilter}`,
         );
         setResult(data);
       } catch (e) {
@@ -48,7 +49,7 @@ export default function SearchPage() {
         setLoading(false);
       }
     },
-    [kinds, limit],
+    [kinds, limit, timeFilter],
   );
 
   const ranDeepLink = useRef(false);
@@ -124,6 +125,19 @@ export default function SearchPage() {
               </option>
             ))}
           </select>
+          <span className="text-zinc-500">Freshness:</span>
+          <select
+            value={timeFilter}
+            onChange={(e) => setTimeFilter(e.target.value)}
+            data-testid="time-filter"
+            className="rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1 text-xs"
+          >
+            <option value="any">Any time</option>
+            <option value="day">Past day</option>
+            <option value="week">Past week</option>
+            <option value="month">Past month</option>
+            <option value="year">Past year</option>
+          </select>
         </div>
       </div>
 
@@ -190,6 +204,13 @@ export default function SearchPage() {
                   )}
                   {!r.configured && (
                     <span className="text-amber-400">(not configured)</span>
+                  )}
+                  {r.ok && timeFilter !== "any" && (
+                    <span className="text-zinc-500">
+                      {r.time_filter_applied
+                        ? "(freshness applied)"
+                        : "(unfiltered)"}
+                    </span>
                   )}
                 </p>
               ))}

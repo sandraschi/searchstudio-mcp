@@ -1,0 +1,52 @@
+[project]
+name = "super-search-mcp"
+version = "0.1.0"
+description = "SearchStudio: parallel multi-provider fan-out (web, knowledge, fleet-local) with health receipts"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Sandra Schipal" }]
+dependencies = [
+  "fastmcp>=3.4.4,<5",
+  "starlette>=1.0.1",
+  "uvicorn>=0.30",
+  "httpx>=0.28",
+  "prefab-ui>=0.14.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pytest-asyncio>=0.24", "ruff>=0.14", "pyright>=1.1"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/super_search_mcp"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "S", "W"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]
+
+[tool.ruff.lint.flake8-bandit]
+# S310 flagged per-call site with noqa where the URL is constructed in-repo
+# from constants + encoded query params (no user-controlled scheme/host).
+
+[tool.pyright]
+typeCheckingMode = "basic"
+reportMissingImports = true
+venvPath = "."
+venv = ".venv"
+
+[dependency-groups]
+dev = ["pytest>=8", "pytest-asyncio>=0.24", "ruff>=0.14", "pyright>=1.1"]

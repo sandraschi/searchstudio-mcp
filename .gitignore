@@ -1,0 +1,73 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# Node / webapp
+node_modules/
+**/node_modules/
+.next/
+*.tsbuildinfo
+
+# Rust / Tauri (fleet mandatory even without Rust: Zed/rust-analyzer roots)
+target/
+native/target/
+webapp/src-tauri/target/
+gen/
+
+# Build output
+dist/
+build/
+*.spec
+*.exe
+*.mcpb
+
+# MCPB pack staging (exact copy of src/ for packing - never commit)
+mcpb/src/
+mcpb/
+
+# Tauri resources (PyInstaller binaries - gitignored, bundled at build)
+native/resources/*.exe
+native/binaries/*.exe
+
+# Data / DB
+data/
+*.db
+*.db-shm
+*.db-wal
+*.sqlite3
+
+# Secrets (Tavily/Exa/Brave keys live in env, never here)
+.env
+.env.*
+!.env.example
+*.pem
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+
+# Logs
+*.log
+logs/
+
+# Fleet backup artifacts (both patterns required)
+*.bak
+*.bak.*
+
+# Docker
+.docker/
+
+# Playwright
+playwright-report/
+test-results/

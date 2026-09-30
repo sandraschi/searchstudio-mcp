@@ -18,7 +18,9 @@ Install these if you don't have them already:
 > macOS: use `brew install` equivalents
 > Linux: use your distro package manager
 
-## Option A — Drag and Drop (Recommended)
+## Option A — Drag and Drop (Recommended, pending first release)
+
+> No GitHub releases exist yet — this path activates with v0.1.0. Until then, use Option C/D.
 
 1. Go to [Releases](https://github.com/sandraschi/searchstudio-mcp/releases/latest)
 2. Download `searchstudio-{version}.mcpb`

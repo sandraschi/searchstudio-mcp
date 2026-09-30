@@ -1,6 +1,6 @@
 # SearchStudio
 
-**Super search is all you need.** One query fans out in parallel across web search (OpenSERP, DuckDuckGo, Tavily), curated knowledge (Wikipedia, TVTropes, PubMed…), and your own fleet (arXiv depot, memory RAG) — then merges, dedupes, and shows receipts for which pipes answered and which blocked.
+**Super search is all you need.** One query fans out in parallel across web search (OpenSERP, DuckDuckGo, Tavily), curated knowledge (Wikipedia), and your arXiv depot — then merges, dedupes, and shows receipts for which pipes answered and which blocked.
 
 [![Status](https://img.shields.io/badge/status-phase%201-blue)]()
 [![FastMCP](https://img.shields.io/badge/FastMCP-%3E%3D3.4.4-green)]()
@@ -15,12 +15,11 @@
 
 ## What You Can Do
 
-- Ask once, search everywhere — [web search](#serp), [Wikipedia](#wikipedia), your [arXiv depot](#arxiv-depot), your [memory vault](#memory-vault)
+- Ask once, search everywhere — [web search](#serp), [Wikipedia](#wikipedia), your [arXiv depot](#arxiv-depot)
 - See *receipts*: which [providers](#providers-and-targets) answered, which were blocked, how slow each was
 - Keep working when pipes die — dead providers are skipped *and reported*, never silent zeros
 - Run the flakiness matrix on demand — measure the iffiness instead of vibing it
-- Feed aiwatcher breaking-news gaps and travel freshness checks (crossconnects)
-- Chat with a search-expert skill, 4 personalities, local Ollama first
+- Chat with a search-expert skill, 3 personalities + custom prompt, local Ollama first
 
 ## How It Runs
 
@@ -68,12 +67,15 @@ Your personal knowledge base in [advanced-memory-mcp](https://github.com/sandras
 
 ## Quick Install
 
+Fastest working path today (first `.mcpb` release pending — no Releases exist yet):
+
 ```bash
-# Option A — drag & drop (Claude Desktop)
-# Download searchstudio-{version}.mcpb from Releases, drop it on the Claude Desktop window
+git clone https://github.com/sandraschi/searchstudio-mcp
+cd searchstudio-mcp
+start.bat
 ```
 
-See [INSTALL.md](INSTALL.md) for all methods (mcpb, manual config, developer mode).
+Backend on `:11226`, webapp on `:11225`. See [INSTALL.md](INSTALL.md) for all methods (manual MCP config, developer mode, and the `.mcpb` path once the first release is cut).
 
 ## Example Prompts
 

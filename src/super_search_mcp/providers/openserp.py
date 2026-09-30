@@ -2,13 +2,20 @@
 
 Talks to the self-hosted OpenSERP service (default http://127.0.0.1:7000).
 Engines are tried in order, first success wins (mode=any *inside* the
-provider). A dead local service is the classic fleet failure — it returns an
+provider). A dead local service is the classic fleet failure - it returns an
 error receipt naming Docker explicitly, never a silent zero.
+
+Freshness: OpenSERP has no date parameter, so time_filter appends an
+``after:YYYY-MM-DD`` operator (computed from the real clock) to the query
+text. Google/Bing honor it; other engines ignore unknown operators
+gracefully. applied=True therefore means "operator transmitted", with
+engine variance documented here, not "every engine filtered".
 """
 
 from __future__ import annotations
 
 import urllib.parse as _parse
+from datetime import UTC, datetime, timedelta
 
 from ..models import SearchHit
 from .base import _client, _now_ms, _receipt
@@ -53,13 +60,22 @@ class OpenSerpProvider:
     def configured(self) -> bool:
         return True  # address known; liveness probed per call
 
-    async def search(self, query: str, limit: int = 10) -> tuple[list[SearchHit], object]:
+    async def search(
+        self, query: str, limit: int = 10, time_filter: str = "any"
+    ) -> tuple[list[SearchHit], object]:
         started = _now_ms()
         q = (query or "").strip()
         if not q:
             return [], _receipt(
                 NAME, KIND, ok=False, hits=[], started_ms=started, error="empty query"
             )
+        filt = (time_filter or "any").lower()
+        applied = False
+        if filt in ("day", "week", "month", "year"):
+            days = {"day": 1, "week": 7, "month": 30, "year": 365}[filt]
+            cutoff = (datetime.now(UTC) - timedelta(days=days)).date().isoformat()
+            q = f"{q} after:{cutoff}"
+            applied = True
         params = _parse.urlencode({"text": q, "limit": str(min(max(limit, 1), 20))})
         last_error = "no engines configured"
         try:
@@ -75,7 +91,14 @@ class OpenSerpProvider:
                     results = data.get("results", data if isinstance(data, list) else [])
                     hits = map_results(results)[: max(limit, 1)]
                     if hits:
-                        return hits, _receipt(NAME, KIND, ok=True, hits=hits, started_ms=started)
+                        return hits, _receipt(
+                            NAME,
+                            KIND,
+                            ok=True,
+                            hits=hits,
+                            started_ms=started,
+                            time_filter_applied=applied,
+                        )
                     last_error = f"{engine}: empty result set"
         except Exception as e:
             return [], _receipt(

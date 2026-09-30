@@ -30,7 +30,7 @@ def map_papers(papers: list) -> list[SearchHit]:
             continue
         authors = ", ".join((p.get("authors") or [])[:3])
         summary = (p.get("summary") or "")[:300]
-        snippet = f"{authors} — {summary}".strip(" —") if authors else summary
+        snippet = f"{authors} - {summary}".strip(" -") if authors else summary
         hits.append(
             SearchHit(
                 title=title,
@@ -56,18 +56,22 @@ class ArxivMcpProvider:
     def configured(self) -> bool:
         return True  # address known; liveness probed per call
 
-    async def search(self, query: str, limit: int = 10) -> tuple[list[SearchHit], object]:
+    async def search(
+        self, query: str, limit: int = 10, time_filter: str = "any"
+    ) -> tuple[list[SearchHit], object]:
         started = _now_ms()
         q = (query or "").strip()
         if not q:
             return [], _receipt(
                 NAME, KIND, ok=False, hits=[], started_ms=started, error="empty query"
             )
-        url = (
-            self._base_url
-            + "/api/preprints/search?"
-            + _parse.urlencode({"q": q, "limit": str(min(max(limit, 1), 25))})
-        )
+        # The sibling endpoint takes hours natively: map our vocabulary onto it.
+        hours_map = {"day": 24, "week": 24 * 7, "month": 24 * 30, "year": 24 * 365}
+        filt = (time_filter or "any").lower()
+        params = {"q": q, "limit": str(min(max(limit, 1), 25))}
+        if filt in hours_map:
+            params["hours"] = str(hours_map[filt])
+        url = self._base_url + "/api/preprints/search?" + _parse.urlencode(params)
         try:
             async with _client(self._timeout_s) as client:
                 resp = await client.get(url)
@@ -83,4 +87,11 @@ class ArxivMcpProvider:
                 error=f"arxiv-mcp backend unreachable at {self._base_url}: {e}",
             )
         hits = map_papers(data.get("merged", []))[: max(limit, 1)]
-        return hits, _receipt(NAME, KIND, ok=True, hits=hits, started_ms=started)
+        return hits, _receipt(
+            NAME,
+            KIND,
+            ok=True,
+            hits=hits,
+            started_ms=started,
+            time_filter_applied=filt in hours_map,
+        )

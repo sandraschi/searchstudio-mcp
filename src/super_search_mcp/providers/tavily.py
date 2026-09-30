@@ -2,7 +2,7 @@
 
 With ``TAVILY_API_KEY`` set: AI-native search (answer + results + optional
 page content). Without it: a declared stub receipt (configured=False, setup
-hint) — the fan-out continues with the keyless providers. No silent zeros.
+hint) - the fan-out continues with the keyless providers. No silent zeros.
 """
 
 from __future__ import annotations
@@ -52,7 +52,9 @@ class TavilyProvider:
     def configured(self) -> bool:
         return bool(self._api_key)
 
-    async def search(self, query: str, limit: int = 10) -> tuple[list[SearchHit], object]:
+    async def search(
+        self, query: str, limit: int = 10, time_filter: str = "any"
+    ) -> tuple[list[SearchHit], object]:
         started = _now_ms()
         if not self._api_key:
             return [], _receipt(
@@ -75,6 +77,11 @@ class TavilyProvider:
             "include_answer": False,
             "include_raw_content": False,
         }
+        # Verified 2026-09-30 in the Tavily API spec: time_range takes
+        # day/week/month/year - exactly our filter vocabulary.
+        filt = (time_filter or "any").lower()
+        if filt in ("day", "week", "month", "year"):
+            payload["time_range"] = filt
         try:
             async with _client(self._timeout_s) as client:
                 resp = await client.post(
@@ -94,4 +101,11 @@ class TavilyProvider:
                 error=f"Tavily request failed: {e}",
             )
         hits = map_response(data)[: max(limit, 1)]
-        return hits, _receipt(NAME, KIND, ok=True, hits=hits, started_ms=started)
+        return hits, _receipt(
+            NAME,
+            KIND,
+            ok=True,
+            hits=hits,
+            started_ms=started,
+            time_filter_applied=filt in ("day", "week", "month", "year"),
+        )

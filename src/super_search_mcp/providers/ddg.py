@@ -66,7 +66,12 @@ class DuckDuckGoProvider:
     def configured(self) -> bool:
         return True  # keyless; availability is probed per call, not assumed
 
-    async def search(self, query: str, limit: int = 10) -> tuple[list[SearchHit], object]:
+    async def search(
+        self, query: str, limit: int = 10, time_filter: str = "any"
+    ) -> tuple[list[SearchHit], object]:
+        # No date parameter exists on the lite endpoint (verified 2026-09-30
+        # against the official params list): the filter is accepted and
+        # reported unapplied, never silently dropped.
         started = _now_ms()
         q = (query or "").strip()
         if not q:

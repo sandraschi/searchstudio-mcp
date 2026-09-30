@@ -2,7 +2,7 @@
 
 MediaWiki API, single round trip via generator=search: titles, intro
 extracts, and canonical URLs. No key, generous courtesy limits, stable
-schema — the most reliable pipe in the building.
+schema - the most reliable pipe in the building.
 """
 
 from __future__ import annotations
@@ -54,7 +54,10 @@ class WikipediaProvider:
     def configured(self) -> bool:
         return True
 
-    async def search(self, query: str, limit: int = 10) -> tuple[list[SearchHit], object]:
+    async def search(
+        self, query: str, limit: int = 10, time_filter: str = "any"
+    ) -> tuple[list[SearchHit], object]:
+        # generator=search carries no date metadata: accepted, unapplied, reported.
         started = _now_ms()
         q = (query or "").strip()
         if not q:

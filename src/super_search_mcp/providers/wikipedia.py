@@ -18,8 +18,7 @@ API = "https://en.wikipedia.org/w/api.php"
 # Wikimedia blocks generic/bot-like User-Agents (403). Identify the app plus
 # a contact point per the Wikimedia User-Agent policy.
 WIKIMEDIA_UA = (
-    "SearchStudio/0.1.0 (local fleet research tool; "
-    "https://github.com/sandraschi/searchstudio-mcp)"
+    "SearchStudio/0.1.0 (local fleet research tool; https://github.com/sandraschi/searchstudio-mcp)"
 )
 
 

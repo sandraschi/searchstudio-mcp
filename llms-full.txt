@@ -1,0 +1,46 @@
+# SearchStudio — llms-full.txt
+
+## What it is
+
+SearchStudio (`searchstudio-mcp`, alias `searchstudio`) aggregates search across three provider kinds behind one query: fleet-local knowledge (arxiv-mcp preprint fan-out), curated sources (Wikipedia via MediaWiki API), and web search (self-hosted OpenSERP on Docker :7000, DuckDuckGo lite scrape, Tavily SaaS with key). Infrastructure tier: consumed by other MCP servers and agents, webapp for diagnostics and manual search. No Tauri/NSIS.
+
+## Tool surface (MCP)
+
+Portmanteau `searchops(operation=...)`, all READ_ONLY + openWorldHint:
+
+- `super_search`: query* (required), kinds CSV (fleet-local,knowledge,serp; default all), providers CSV allowlist (default all), time_filter (reserved informational, default any), limit 1..50 (default 10), mode balanced|any (default balanced). Returns {query, total, hits[{title,url,snippet,provider,kind,published,score}], receipts[{provider,kind,ok,latency_ms,count,error,blocked,configured}]}. mode=any adds mode_winner_kind (fastest kind with hits). Failures: {success False, error, error_type, suggestions}.
+- `provider_health`: window_hours (default 24). Rolling scoreboard per provider: attempts, success_rate, p50_latency_ms, blocked, plus live configured flags. Empty when no searches recorded yet (says so).
+- `self_test`: 3 canonical probes (evergreen news, local history, niche how-to) across all providers; returns matrix with per-provider counts and failure lists.
+- `provider_health_app`: Prefab card twin (app=True), plain-text fallback, is_error on failure paths.
+
+Phase 2/3 operations (aiwatcher_feed, condense) are NOT in the surface until built. No stubs.
+
+## REST (Starlette, port 11226)
+
+/api/health → {success, service, version, configured, authenticated: true, db, providers[{name,kind,configured}]}. /api/capabilities → tools + rest + kinds. /api/skills → [{super-search}]. /skill/super-search → SKILL.md text. /api/search?q=&kinds=&providers=&limit=&mode= → super_search mirror. /api/providers?window_hours= → scoreboard + configured. /api/matrix → self_test. /mcp → MCP streamable HTTP (lifespan-shared with parent app; FastMCP 3.4.4+ pitfall avoided).
+
+## Providers
+
+- arxiv-mcp (fleet-local, keyless): GET {ARXIV_MCP_BASE_URL}/api/preprints/search, maps merged papers. Down = error receipt naming the URL.
+- wikipedia (knowledge, keyless): MediaWiki generator=search single round trip, courtesy User-Agent per Wikimedia policy.
+- openserp-local (serp, keyless): {OPENSERP_BASE_URL}/{engine}/search, engines google,bing,duckduckgo,yandex,ecosia tried in order, first hits win. Dead Docker = error receipt asking about Docker explicitly.
+- duckduckgo (serp, keyless): lite.duckduckgo.com scrape, defensive regex, redirect-unwrap (uddg), anomaly-page detection → blocked=True.
+- tavily (serp, keyed): POST api.tavily.com/search with Bearer key. No key = declared stub (configured False + setup hint), fan-out continues.
+
+Merge: kind priority fleet-local → knowledge → serp, URL-normalized dedupe, bounded by limit. Dispatch is keyword-only (positional misrouting caused a live biorxiv incident elsewhere; contract test pins it). Health ledger: SQLite WAL at data/searchstudio.sqlite3, advisory writes (never fail searches), per-provider locking semantics via short transactions.
+
+## Env
+
+TAVILY_API_KEY (optional), EXA_API_KEY / BRAVE_API_KEY (Phase 2), OPENSERP_BASE_URL (default 127.0.0.1:7000), ARXIV_MCP_BASE_URL (default 127.0.0.1:10770), SUPER_SEARCH_DATA_DIR (default data), SUPER_SEARCH_BACKEND_PORT (default 11226). Never commit keys.
+
+## Architecture
+
+Fan-out: asyncio.gather over selected providers → merge → record health → return. No sessions, no background tasks, no corpus. Lifespan probe is shallow (settings + DB writability, no network). Errors dialogic everywhere; _error_response-style auto-logging via logger.exception at boundaries.
+
+## Webapp (port 11225, React+Vite+bun)
+
+Pages: Dashboard (hero, quick queries, provider cards, red onboarding CTA when providers unconfigured), Search console (query, kind checkboxes, limit, hits + receipts), Providers (cards + flakiness matrix trigger), Activity (7-day call trail = inbox analog), Tools (surface reference), Skills (SKILL.md render + skill:// note), Chat (skill-first, 4 personalities, local Ollama resident-first default, history/export/clear), Settings (Ollama status, key status read-only, onboarding), Help (FAQ), Logs (locations + ledger pointer). Dark default. data-testids on primary controls.
+
+## Troubleshooting (short)
+
+Empty hits + failed receipts = nothing searched (check transport: Docker? arxiv-mcp up?). Tavily unconfigured = expected without key. Wikipedia 403 = UA policy change (already compliant). Port busy = zombie process (start.ps1 clears). Chat dead = Ollama down. Full list: docs/TROUBLESHOOTING.md.

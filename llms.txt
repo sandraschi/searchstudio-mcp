@@ -1,0 +1,9 @@
+# SearchStudio — llms.txt
+
+Super search is all you need: parallel fan-out across web (OpenSERP, DuckDuckGo, Tavily), knowledge (Wikipedia), and fleet-local (arxiv-mcp) with per-provider health receipts.
+
+- Docs: [PRD](docs/PRD.md) · [Architecture](docs/ARCHITECTURE.md) · [Tools](docs/TOOLS.md) · [Onboarding](docs/ONBOARDING.md) · [Troubleshooting](docs/TROUBLESHOOTING.md)
+- Full reference: [llms-full.txt](llms-full.txt)
+- MCP tools: `searchops` (super_search | provider_health | self_test), `provider_health_app` (Prefab)
+- REST: `/api/health` `/api/capabilities` `/api/skills` `/skill/super-search` `/api/search` `/api/providers` `/api/matrix`
+- Ports: backend 11226, frontend 11225. Env: TAVILY_API_KEY (optional), OPENSERP_BASE_URL, ARXIV_MCP_BASE_URL.

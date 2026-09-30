@@ -1,0 +1,23 @@
+{
+  "manifest_version": "0.2",
+  "name": "searchstudio-mcp",
+  "version": "0.1.0",
+  "description": "Super search is all you need: parallel multi-provider fan-out with health receipts",
+  "author": { "name": "Sandra Schipal" },
+  "server": {
+    "type": "python",
+    "entry_point": "src/super_search_mcp/server.py",
+    "mcp_config": {
+      "command": "python",
+      "args": ["-m", "super_search_mcp"],
+      "env": {
+        "PYTHONPATH": "${PWD}",
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  },
+  "tools": [
+    { "name": "searchops", "description": "Parallel multi-provider search (super_search), provider health scoreboard, flakiness self-test" },
+    { "name": "provider_health_app", "description": "Provider health scoreboard as an in-chat Prefab card" }
+  ]
+}

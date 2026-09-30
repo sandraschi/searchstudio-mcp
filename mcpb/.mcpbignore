@@ -1,0 +1,22 @@
+# Pack-root ignore for `mcpb pack mcpb/ dist/…` — syntax identical to .gitignore.
+# MUST live at mcpb/.mcpbignore (pack root), not just repo root: the pack CLI
+# reads ignores from the pack root and reports "ignored files: 0" otherwise.
+
+# Staging + bytecode that must never ship
+src/__pycache__/
+src/**/*.pyc
+src/**/*.pyo
+src/*.egg-info/
+
+# Env, caches, tests
+src/.venv/
+src/.pytest_cache/
+src/.ruff_cache/
+src/data/
+src/*.db*
+src/.env
+src/.env.*
+
+# Backups
+*.bak
+*.bak.*

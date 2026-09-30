@@ -29,8 +29,10 @@ build/
 *.mcpb
 
 # MCPB pack staging (exact copy of src/ for packing - never commit)
+# NOTE: mcpb/manifest.json + mcpb/assets/ ARE committed (pack sources).
 mcpb/src/
-mcpb/
+mcpb/*.mcpb
+mcpb/dist/
 
 # Tauri resources (PyInstaller binaries - gitignored, bundled at build)
 native/resources/*.exe

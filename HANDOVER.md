@@ -19,28 +19,26 @@ work plan: `docs/ASSESSMENT_2026-09-30.md` (sections 1-9, work packages WP0-WP9)
 
 ## Last concrete action
 
-- Wrote and extended `docs/ASSESSMENT_2026-09-30.md`: added section 8 (concept,
-  competition, prospects) and section 9 (research vs search: memops review, prior art,
-  a model tier per step, three execution modes, ownership). WP3b, WP7-WP9 rewritten
-  to match. No code changed.
-- Created the mcd project mirror at `mcp-central-docs/projects/searchstudio-mcp/`
-  (none existed before), committed in mcd.
-- Fleet standard reversed to FastAPI + Pydantic v2 (mcd `standards/`), committed in mcd.
-- Baseline verified 2026-09-30 20:00: `uv run --extra dev pytest tests -q` gave
-  16 passed; `ruff check` and `ruff format --check` were clean.
+- WP2 done (opencode): `time_filter` is real — Tavily native, sibling hours,
+  OpenSERP after:, DDG/Wikipedia declared-unapplied, receipt flag,
+  freshness UI, 25 tests green, pushed. Live-proved against the real APIs.
+- WP1 done (opencode): skill:// registered + tested, dead button, promise
+  order, README/INSTALL honesty pass, pushed.
 
 ## Next step
 
-WP1: fix the honesty bugs in assessment section 3.1 (WP0 is done: PRD, wikipedia.py
-reflow, the assessment and this file are committed and pushed). The most important is
-the phantom `skill://super-search` resource that SkillsPage claims exists but nothing
-registers.
+WP3: README rewrite per assessment 3.4 (vision first, live input-output
+example, status table, glossary to ONBOARDING, working Quick Install).
+Needs no decisions.
 
 ## Blockers
 
-None for WP0-WP6. WP7-WP9 wait on Sandra's decisions in assessment section 6 (fetch
-path, LLM backends/modes, skill_build vs memops boundary, research ownership, product
-surface). Package renaming also waits on Sandra.
+Decided by Sandra 2026-09-30 (rest still open):
+- DONE #6 product surface: public repo with brilliant webapp.
+- DONE #1 naming: unify on searchstudio (repo-scoped).
+- DONE #3 LLM backends: three modes confirmed.
+- DEFERRED #2 fetch path: Jina must be evaluated as an mcd integration first.
+- OPEN #4 skill_build vs memops boundary, #5 research ownership, release question.
 
 ## Context the next agent needs
 

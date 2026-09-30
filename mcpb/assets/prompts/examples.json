@@ -1,0 +1,702 @@
+[
+  {
+    "name": "basic-web-query",
+    "description": "Plain natural-language query across all providers",
+    "prompt": "Super-search the AMD World Labs acquisition",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "AMD World Labs acquisition" }
+  },
+  {
+    "name": "local-history-knowledge",
+    "description": "Local history entity via knowledge kind",
+    "prompt": "Search Wikipedia and the depot for Hollabrunn local history",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "Hollabrunn local history", "kinds": "fleet-local,knowledge" }
+  },
+  {
+    "name": "niche-howto",
+    "description": "Niche practical question, default breadth",
+    "prompt": "Best sourdough hydration percentage?",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "best sourdough hydration percentage" }
+  },
+  {
+    "name": "breaking-news-any-mode",
+    "description": "Fresh story, fastest kind wins",
+    "prompt": "What broke in tech news today, fastest answer wins",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "tech breaking news today", "mode": "any" }
+  },
+  {
+    "name": "fleet-only-preprints",
+    "description": "Academic digging scoped to fleet-local depot",
+    "prompt": "Find preprints on mechanistic interpretability",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "mechanistic interpretability preprints", "kinds": "fleet-local" }
+  },
+  {
+    "name": "wikipedia-only-entity",
+    "description": "Entity lookup via Wikipedia provider only",
+    "prompt": "Wikipedia: Battle of Hollabrunn",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "Battle of Hollabrunn", "providers": "wikipedia" }
+  },
+  {
+    "name": "tavily-only-ranked",
+    "description": "AI-ranked results via Tavily only",
+    "prompt": "Tavily-ranked comparison of robot vacuum navigation",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "robot vacuum lidar vs camera navigation comparison", "providers": "tavily" }
+  },
+  {
+    "name": "ddg-only-breadth",
+    "description": "Unfiltered breadth via DuckDuckGo only",
+    "prompt": "DuckDuckGo: owner complaints about lidar vacuums",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "lidar robot vacuum owner complaints forums", "providers": "duckduckgo" }
+  },
+  {
+    "name": "openserp-only-engines",
+    "description": "Multi-engine web via OpenSERP-local only",
+    "prompt": "OpenSERP engines: diffusion transformer video survey",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "diffusion transformer video generation survey", "providers": "openserp-local" }
+  },
+  {
+    "name": "serp-kind-news",
+    "description": "News-shaped query across the whole serp kind",
+    "prompt": "Newest reports on the acquisition terms and closing date",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "AMD World Labs acquisition terms closing date", "kinds": "serp", "limit": 20 }
+  },
+  {
+    "name": "high-limit-comparison",
+    "description": "Comparison shopping needs breadth: limit 25",
+    "prompt": "Compare e-bike motors broadly, lots of results",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "e-bike mid-drive vs hub motor comparison", "limit": 25 }
+  },
+  {
+    "name": "minimal-limit-navigational",
+    "description": "Navigational lookup needs 3 hits, not 30",
+    "prompt": "Tavily homepage, just find it",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "Tavily AI search homepage", "limit": 3 }
+  },
+  {
+    "name": "adversarial-criticism",
+    "description": "Deliberately adversarial second pass",
+    "prompt": "Criticism and limitations of lidar robot vacuums",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "lidar robot vacuum limitations problems criticism", "limit": 15 }
+  },
+  {
+    "name": "trivia-low-stakes",
+    "description": "Trivia night via knowledge-first",
+    "prompt": "Is Naruto a bald guy?",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "Naruto appearance bald", "kinds": "knowledge,serp", "limit": 5 }
+  },
+  {
+    "name": "travel-advisory-fresh",
+    "description": "Time-sensitive advisory check, serp only",
+    "prompt": "Any travel advisories for Japan this week?",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "Japan travel advisory this week", "kinds": "serp", "limit": 10 }
+  },
+  {
+    "name": "academic-survey-hunt",
+    "description": "Survey papers via fleet-local",
+    "prompt": "Survey papers on retrieval-augmented generation",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "retrieval-augmented generation survey", "kinds": "fleet-local", "limit": 15 }
+  },
+  {
+    "name": "quoted-exact-title",
+    "description": "Quoted phrase narrows everywhere",
+    "prompt": "Find the paper titled Attention Is All You Need",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "\"Attention Is All You Need\"", "kinds": "fleet-local", "limit": 5 }
+  },
+  {
+    "name": "medical-overview",
+    "description": "Clinical topic, knowledge-first plus serp",
+    "prompt": "Overview of GLP-1 side effects",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "GLP-1 side effects overview", "kinds": "knowledge,serp", "limit": 12 }
+  },
+  {
+    "name": "shopping-decision",
+    "description": "Purchase decision with breadth",
+    "prompt": "Which espresso grinder under 500 is actually good?",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "best espresso grinder under 500 comparison", "limit": 20 }
+  },
+  {
+    "name": "debugging-error-message",
+    "description": "Error text search for debugging",
+    "prompt": "What does StreamableHTTPSessionManager task group was not initialized mean?",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "FastMCP StreamableHTTPSessionManager task group was not initialized", "kinds": "serp", "limit": 8 }
+  },
+  {
+    "name": "recipe-practical",
+    "description": "Everyday practical query",
+    "prompt": "No-knead bread schedule for working people",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "no-knead bread schedule working people", "limit": 8 }
+  },
+  {
+    "name": "two-provider-duo",
+    "description": "Explicit duo: encyclopedia plus forums",
+    "prompt": "Wikipedia plus DuckDuckGo on sourdough starter",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "sourdough starter guide", "providers": "wikipedia,duckduckgo" }
+  },
+  {
+    "name": "docker-troubleshooting",
+    "description": "Infra debugging via serp",
+    "prompt": "Docker Desktop engine API version mismatch 500 on Windows",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "Docker Desktop engine API mismatch 500 Windows fix", "kinds": "serp", "limit": 8 }
+  },
+  {
+    "name": "arxiv-plus-web",
+    "description": "Paper plus commentary: depot and web together",
+    "prompt": "The Tool Attention paper plus any discussion of it",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "Tool Attention MCP tools tax paper discussion", "kinds": "fleet-local,serp", "limit": 12 }
+  },
+  {
+    "name": "empty-query-validation",
+    "description": "Empty query is a validation error, not an empty search",
+    "prompt": "(empty query submitted)",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "" }
+  },
+  {
+    "name": "health-default-window",
+    "description": "Rolling 24h provider scoreboard",
+    "prompt": "Which providers are healthy right now?",
+    "tool": "searchops",
+    "arguments": { "operation": "provider_health" }
+  },
+  {
+    "name": "health-week-window",
+    "description": "Week-long scoreboard for trend spotting",
+    "prompt": "Provider health over the last week",
+    "tool": "searchops",
+    "arguments": { "operation": "provider_health", "window_hours": 168 }
+  },
+  {
+    "name": "health-after-outage",
+    "description": "Confirm recovery after Docker restart",
+    "prompt": "Is OpenSERP back after the Docker restart?",
+    "tool": "searchops",
+    "arguments": { "operation": "provider_health", "window_hours": 1 }
+  },
+  {
+    "name": "health-monday-ritual",
+    "description": "Weekly five-minute maintenance glance",
+    "prompt": "Monday check: anything below 50 percent this week?",
+    "tool": "searchops",
+    "arguments": { "operation": "provider_health", "window_hours": 168 }
+  },
+  {
+    "name": "health-fresh-install",
+    "description": "Empty scoreboard on a new install",
+    "prompt": "Provider health on a fresh install (no searches yet)",
+    "tool": "searchops",
+    "arguments": { "operation": "provider_health" }
+  },
+  {
+    "name": "matrix-after-infra-change",
+    "description": "Re-baseline after Docker restart or new key",
+    "prompt": "Run the flakiness matrix after the Docker restart",
+    "tool": "searchops",
+    "arguments": { "operation": "self_test" }
+  },
+  {
+    "name": "matrix-quarterly-record",
+    "description": "Quarterly matrix for the incident log",
+    "prompt": "Quarterly flakiness matrix for the record",
+    "tool": "searchops",
+    "arguments": { "operation": "self_test" }
+  },
+  {
+    "name": "matrix-new-provider",
+    "description": "Verify a newly added provider end to end",
+    "prompt": "Self-test with the new provider included",
+    "tool": "searchops",
+    "arguments": { "operation": "self_test" }
+  },
+  {
+    "name": "app-card-chat",
+    "description": "In-chat health card via Prefab",
+    "prompt": "Show me provider health as a card",
+    "tool": "provider_health_app",
+    "arguments": {}
+  },
+  {
+    "name": "app-card-week",
+    "description": "Week-window health card",
+    "prompt": "Health card for the last week",
+    "tool": "provider_health_app",
+    "arguments": { "window_hours": 168 }
+  },
+  {
+    "name": "unknown-operation",
+    "description": "Unknown op lists the valid three",
+    "prompt": "(agent calls condense before Phase 3 exists)",
+    "tool": "searchops",
+    "arguments": { "operation": "condense", "query": "anything" }
+  },
+  {
+    "name": "visa-requirements",
+    "description": "Travel freshness: visa rules change",
+    "prompt": "Japan visa requirements for Austrian citizens right now",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "Japan visa requirements Austrian citizens", "kinds": "serp", "limit": 8 }
+  },
+  {
+    "name": "flight-price-sense",
+    "description": "Price breadth before booking",
+    "prompt": "Vienna Tokyo flight prices November sense-check",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "Vienna Tokyo flights November price", "kinds": "serp", "limit": 15 }
+  },
+  {
+    "name": "paper-plus-code",
+    "description": "Paper and its implementation together",
+    "prompt": "Diffusion transformer paper plus GitHub implementations",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "diffusion transformer paper github implementation", "kinds": "fleet-local,serp", "limit": 15 }
+  },
+  {
+    "name": "method-comparison",
+    "description": "Two methods head to head",
+    "prompt": "RAG vs long-context for legal document QA",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "RAG vs long context legal document QA comparison", "limit": 15 }
+  },
+  {
+    "name": "garden-pests",
+    "description": "Everyday domain via knowledge plus forums",
+    "prompt": "What eats tomato seedlings at night in Austria?",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "what eats tomato seedlings at night", "kinds": "knowledge,serp", "limit": 8 }
+  },
+  {
+    "name": "obscure-error",
+    "description": "Obscure build error, exact text",
+    "prompt": "uv sync unsatisfiable dev extra dependency-groups error",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "uv sync extra dev requirements unsatisfiable", "kinds": "serp", "limit": 8 }
+  },
+  {
+    "name": "book-recommendation",
+    "description": "Taste question across indexes",
+    "prompt": "Books like Project Hail Mary but darker",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "books like Project Hail Mary darker", "limit": 12 }
+  },
+  {
+    "name": "appliance-repair",
+    "description": "Repair knowledge: model-specific",
+    "prompt": "Miele dishwasher F70 fault reset procedure",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "Miele dishwasher F70 fault reset", "limit": 8 }
+  },
+  {
+    "name": "technique-tutorial",
+    "description": "Learn a technique: knowledge leads",
+    "prompt": "How does Treaty-based sourdough scoring work?",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "sourdough scoring technique lame cuts", "kinds": "knowledge,serp", "limit": 10 }
+  },
+  {
+    "name": "funding-deadline",
+    "description": "Time-sensitive institutional query",
+    "prompt": "EU AI research funding calls deadline 2026",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "EU AI research funding calls deadline", "kinds": "serp", "limit": 10 }
+  },
+  {
+    "name": "side-effect-check",
+    "description": "Health question with skepticism framing",
+    "prompt": "Magnesium glycinate evidence and side effects",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "magnesium glycinate evidence side effects", "kinds": "knowledge,serp", "limit": 12 }
+  },
+  {
+    "name": "framework-choice",
+    "description": "Developer tooling decision",
+    "prompt": "Starlette vs FastAPI for small MCP backends in 2026",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "Starlette vs FastAPI small API backend", "kinds": "serp", "limit": 10 }
+  },
+  {
+    "name": "history-deep-dive",
+    "description": "Local history depth via knowledge",
+    "prompt": "Schongrabern battle 1805 details",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "Battle of Schongrabern 1805", "providers": "wikipedia", "limit": 5 }
+  },
+  {
+    "name": "music-trivia",
+    "description": "Pop culture via broad fan-out",
+    "prompt": "Who actually wrote that famous movie theme?",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "who composed the Jaws theme authorship", "limit": 8 }
+  },
+  {
+    "name": "car-buying-used",
+    "description": "High-stakes purchase with adversarial pass",
+    "prompt": "Used Skoda Octavia reliability issues to check",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "used Skoda Octavia reliability problems check", "limit": 15 }
+  },
+  {
+    "name": "language-learning",
+    "description": "Methods question, knowledge plus experience",
+    "prompt": "Does comprehensible input actually work for adults?",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "comprehensible input adults evidence", "kinds": "knowledge,serp", "limit": 12 }
+  },
+  {
+    "name": "startup-idea-validation",
+    "description": "Existence check before building",
+    "prompt": "Does a multi-provider MCP search aggregator already exist?",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "multi-provider MCP search aggregator", "kinds": "serp", "limit": 10 }
+  },
+  {
+    "name": "weather-extreme",
+    "description": "Fast-moving weather event",
+    "prompt": "Storm warnings Lower Austria this weekend",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "storm warnings Lower Austria weekend", "kinds": "serp", "mode": "any", "limit": 8 }
+  },
+  {
+    "name": "conference-deadlines",
+    "description": "Academic calendar via depot plus web",
+    "prompt": "ML conference deadlines fall 2026",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "machine learning conference deadlines fall", "kinds": "fleet-local,serp", "limit": 12 }
+  },
+  {
+    "name": "tool-comparison-dev",
+    "description": "Dev tooling face-off",
+    "prompt": "Bun vs npm for Vite projects on Windows",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "Bun vs npm Vite Windows", "kinds": "serp", "limit": 10 }
+  },
+  {
+    "name": "myth-check",
+    "description": "Common claim verification",
+    "prompt": "Do we really use only 10 percent of our brains?",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "10 percent brain myth origin", "kinds": "knowledge,serp", "limit": 8 }
+  },
+  {
+    "name": "permit-bureaucracy",
+    "description": "Local bureaucracy, serp only",
+    "prompt": "Building permit conservatory Lower Austria process",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "Wintergarten Baubewilligung Niederoesterreich", "kinds": "serp", "limit": 8 }
+  },
+  {
+    "name": "open-source-alternative",
+    "description": "FOSS replacement hunt",
+    "prompt": "Open source alternative to Notion for wikis",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "open source Notion alternative wiki", "limit": 12 }
+  },
+  {
+    "name": "symptom-triage",
+    "description": "Everyday health triage with care framing",
+    "prompt": "Persistent hiccups causes when to see a doctor",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "persistent hiccups causes when see doctor", "kinds": "knowledge,serp", "limit": 8 }
+  },
+  {
+    "name": "election-results-fresh",
+    "description": "Fast news, any-mode",
+    "prompt": "Latest EU parliament vote results today",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "EU parliament vote results", "kinds": "serp", "mode": "any", "limit": 10 }
+  },
+  {
+    "name": "vintage-hardware",
+    "description": "Obscure retro knowledge",
+    "prompt": "Amiga 1200 accelerator compatibility guide",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "Amiga 1200 accelerator compatibility", "limit": 10 }
+  },
+  {
+    "name": "grant-writing",
+    "description": "Professional craft question",
+    "prompt": "How to write a competitive FWF standalone proposal?",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "FWF standalone proposal writing tips", "kinds": "serp", "limit": 10 }
+  },
+  {
+    "name": "chess-opening",
+    "description": "Game knowledge plus recent theory",
+    "prompt": "Is the London System still respectable in 2026?",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "London System reputation 2026 theory", "limit": 10 }
+  },
+  {
+    "name": "aiwatcher-breaking-shape",
+    "description": "Consumer shape: breaking-news gap fill, serp, any-mode, tight",
+    "prompt": "(aiwatcher) anything new on the acquisition in the last hours?",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "AMD World Labs acquisition latest", "kinds": "serp", "limit": 5, "mode": "any" }
+  },
+  {
+    "name": "aiwatcher-degraded-fallback",
+    "description": "Consumer shape: total failure keeps RSS-only behavior",
+    "prompt": "(aiwatcher) all receipts failed, fall back silently",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "obscure topic xyz", "kinds": "serp", "limit": 5 }
+  },
+  {
+    "name": "travel-advisory-shape",
+    "description": "Consumer shape: advisory freshness check",
+    "prompt": "(travelprep) advisories for Italy this week",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "Italy travel advisory this week", "kinds": "serp", "limit": 10 }
+  },
+  {
+    "name": "travel-price-shape",
+    "description": "Consumer shape: price breadth for comparison",
+    "prompt": "(travelprep) rail pass vs flights for Vienna-Munich",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "Vienna Munich rail vs flights price comparison", "kinds": "serp", "limit": 15 }
+  },
+  {
+    "name": "memops-delegate-shape",
+    "description": "Consumer shape (Phase 3): memory research delegates provider=auto",
+    "prompt": "(memops) research quantum dots with auto provider",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "quantum dots display technology", "limit": 15 }
+  },
+  {
+    "name": "rest-search-mirror",
+    "description": "REST mirror: GET /api/search for webapp and fleet HTTP",
+    "prompt": "(HTTP) GET /api/search?q=Hollabrunn&kinds=knowledge&limit=4",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "Hollabrunn", "kinds": "knowledge", "limit": 4 }
+  },
+  {
+    "name": "rest-health-mirror",
+    "description": "REST mirror: GET /api/health for dashboards",
+    "prompt": "(HTTP) GET /api/health shows providers and configured flags",
+    "tool": "searchops",
+    "arguments": { "operation": "provider_health" }
+  },
+  {
+    "name": "rest-matrix-mirror",
+    "description": "REST mirror: GET /api/matrix runs the harness",
+    "prompt": "(HTTP) GET /api/matrix after infra changes",
+    "tool": "searchops",
+    "arguments": { "operation": "self_test" }
+  },
+  {
+    "name": "kind-knowledge-entity",
+    "description": "Deep depot dive, high limit",
+    "prompt": "Everything in the depot on sparse autoencoders",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "sparse autoencoders", "kinds": "fleet-local", "limit": 30 }
+  },
+  {
+    "name": "kind-knowledge-entity-2",
+    "description": "Biographical entity via knowledge",
+    "prompt": "Who was Otto von Habsburg, briefly?",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "Otto von Habsburg", "kinds": "knowledge", "limit": 5 }
+  },
+  {
+    "name": "provider-duo-tavily-ddg",
+    "description": "Ranked plus raw: Tavily and DDG together",
+    "prompt": "AI-ranked plus forum views on heat pumps",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "heat pump real world efficiency complaints", "providers": "tavily,duckduckgo", "limit": 15 }
+  },
+  {
+    "name": "provider-duo-arxiv-wiki",
+    "description": "Paper plus background in one call",
+    "prompt": "Transformer paper plus attention background",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "Transformer attention mechanism", "providers": "arxiv-mcp,wikipedia", "limit": 10 }
+  },
+  {
+    "name": "provider-solo-openserp",
+    "description": "Engines-only sweep for mainstream coverage",
+    "prompt": "Mainstream coverage of the acquisition",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "AMD acquires World Labs mainstream coverage", "providers": "openserp-local", "limit": 12 }
+  },
+  {
+    "name": "limit-one-fast-fact",
+    "description": "Single fast fact, minimal tokens",
+    "prompt": "Capital of Burkina Faso, one answer",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "capital of Burkina Faso", "kinds": "knowledge", "limit": 1 }
+  },
+  {
+    "name": "limit-max-sweep",
+    "description": "Maximum breadth sweep at the cap",
+    "prompt": "Everything findable on small modular reactors",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "small modular reactors status", "limit": 50 }
+  },
+  {
+    "name": "over-limit-clamped",
+    "description": "Limit above 50 clamps to the documented cap",
+    "prompt": "(agent passes limit 500, gets 50)",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "anything broad", "limit": 500 }
+  },
+  {
+    "name": "any-mode-deadline",
+    "description": "Deadline pressure: fastest kind wins",
+    "prompt": "Quick: score of yesterday's Rapid match?",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "Rapid Wien match result yesterday", "kinds": "serp", "mode": "any", "limit": 5 }
+  },
+  {
+    "name": "balanced-default-shape",
+    "description": "Default call shape, all kinds merged",
+    "prompt": "Default search, no tuning",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "how do cicadas make sound" }
+  },
+  {
+    "name": "time-filter-informational",
+    "description": "time_filter accepted, echoed, informational in Phase 1",
+    "prompt": "News from this week (filter reserved for Phase 2)",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "AI regulation news", "time_filter": "week" }
+  },
+  {
+    "name": "health-narrow-window",
+    "description": "Tight window after a suspected incident",
+    "prompt": "Provider health in the last hour",
+    "tool": "searchops",
+    "arguments": { "operation": "provider_health", "window_hours": 1 }
+  },
+  {
+    "name": "health-wide-window",
+    "description": "Month view for chronic issues",
+    "prompt": "Which provider has been flaky all month?",
+    "tool": "searchops",
+    "arguments": { "operation": "provider_health", "window_hours": 720 }
+  },
+  {
+    "name": "app-card-default",
+    "description": "Default in-chat health card",
+    "prompt": "Health card please",
+    "tool": "provider_health_app",
+    "arguments": {}
+  },
+  {
+    "name": "sourdough-redux",
+    "description": "Canonical demo query from the guide",
+    "prompt": "Best sourdough hydration percentage, full fan-out",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "best sourdough hydration percentage", "limit": 12 }
+  },
+  {
+    "name": "hollabrunn-redux",
+    "description": "Canonical local-history demo query",
+    "prompt": "Hollabrunn local history, knowledge plus depot",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "Hollabrunn", "kinds": "fleet-local,knowledge", "limit": 8 }
+  },
+  {
+    "name": "breaking-redux",
+    "description": "Canonical breaking-news demo shape",
+    "prompt": "Breaking tech story, any-mode",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "breaking tech news", "kinds": "serp", "mode": "any", "limit": 8 }
+  },
+  {
+    "name": "wikipedia-disambiguation",
+    "description": "Ambiguous entity returns candidates",
+    "prompt": "Which Hollabrunn? town, battle, or district",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "Hollabrunn", "providers": "wikipedia", "limit": 6 }
+  },
+  {
+    "name": "depot-silent-correctly",
+    "description": "Correct silence: no preprints on bread",
+    "prompt": "Preprints on sourdough (expect none, correctly)",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "sourdough hydration", "kinds": "fleet-local", "limit": 5 }
+  },
+  {
+    "name": "multi-query-flow-map",
+    "description": "Research flow step 1: map the space broadly",
+    "prompt": "Map: everything on neuromorphic computing",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "neuromorphic computing overview", "limit": 20 }
+  },
+  {
+    "name": "multi-query-flow-adversarial",
+    "description": "Research flow step 3: adversarial pass",
+    "prompt": "Adversarial: neuromorphic limitations and criticism",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "neuromorphic computing limitations criticism", "limit": 12 }
+  },
+  {
+    "name": "monday-sweep-shape",
+    "description": "Weekly maintenance glance shape",
+    "prompt": "Monday: provider health week view plus matrix",
+    "tool": "searchops",
+    "arguments": { "operation": "provider_health", "window_hours": 168 }
+  },
+  {
+    "name": "first-search-ever",
+    "description": "Onboarding sanity query",
+    "prompt": "First ever search on a fresh install",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "Hollabrunn", "kinds": "knowledge", "limit": 4 }
+  },
+  {
+    "name": "unicode-query",
+    "description": "Non-ASCII query passes through encoded",
+    "prompt": "Wintergarten Baubewilligung Niederoesterreich",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "Wintergarten Baubewilligung Niederoesterreich", "kinds": "serp", "limit": 8 }
+  },
+  {
+    "name": "very-long-query",
+    "description": "Long natural-language question intact",
+    "prompt": "Full question about heat pump noise regulations in Austrian residential zones at night",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "heat pump noise regulations Austrian residential zones night limits", "limit": 10 }
+  },
+  {
+    "name": "weekend-project-idea",
+    "description": "Leisure project inspiration",
+    "prompt": "Weekend woodworking projects for beginners with hand tools",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "weekend woodworking projects beginners hand tools", "limit": 10 }
+  },
+  {
+    "name": "provide-health-post-restart",
+    "description": "Whitespace-tolerant op name handling check shape",
+    "prompt": "Health right after backend restart",
+    "tool": "searchops",
+    "arguments": { "operation": "provider_health", "window_hours": 1 }
+  },
+  {
+    "name": "serp-plus-knowledge-duo",
+    "description": "Encyclopedia plus web for a place trip",
+    "prompt": "Wachau valley history plus current visitor info",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "Wachau valley history visitor info", "kinds": "knowledge,serp", "limit": 12 }
+  }
+]

@@ -1,4 +1,4 @@
-set -e
+set windows-shell := ["pwsh.exe", "-NoProfile", "-Command"]
 
 serve:
     uv run python -m super_search_mcp --serve

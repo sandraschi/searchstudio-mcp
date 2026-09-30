@@ -10,9 +10,15 @@ export default function SkillsPage() {
   useEffect(() => {
     let live = true;
     apiGet<{ content: string }>("/skill/super-search")
-      .then((d) => live && setContent(d.content ?? ""))
-      .finally(() => live && setLoading(false))
-      .catch((e) => live && setError(String(e)));
+      .then((d) => {
+        if (live) setContent(d.content ?? "");
+      })
+      .catch((e) => {
+        if (live) setError(String(e));
+      })
+      .finally(() => {
+        if (live) setLoading(false);
+      });
     return () => {
       live = false;
     };
@@ -32,15 +38,12 @@ export default function SkillsPage() {
         <p className="text-sm text-red-400">{error}</p>
       ) : (
         <div className="grid gap-3 lg:grid-cols-3" data-testid="skills-list">
-          <button
-            type="button"
-            className="rounded-xl border border-zinc-500 bg-zinc-900 p-3 text-left text-sm"
-          >
+          <div className="rounded-xl border border-zinc-500 bg-zinc-900 p-3 text-left text-sm">
             <code className="text-xs text-zinc-100">super-search</code>
             <p className="mt-1 text-xs text-zinc-400">
               SearchStudio search expert
             </p>
-          </button>
+          </div>
           <pre className="rounded-xl border border-zinc-800 bg-zinc-950 p-4 font-mono text-xs text-zinc-300 whitespace-pre-wrap max-h-[60vh] overflow-y-auto lg:col-span-2">
             {content || "(empty)"}
           </pre>

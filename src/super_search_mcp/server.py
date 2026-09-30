@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Literal
 
 from fastmcp import FastMCP
@@ -52,6 +53,13 @@ async def lifespan(app):
 
 
 mcp = FastMCP("searchstudio", lifespan=lifespan)
+
+
+@mcp.resource("skill://super-search")
+def get_super_search_skill() -> str:
+    """SearchStudio search-expert skill (SKILL.md content)."""
+    path = Path(__file__).parent / "skills" / "super-search" / "SKILL.md"
+    return path.read_text(encoding="utf-8")
 
 
 def _parse_csv(value: str, allowed: set[str]) -> tuple[str, ...]:

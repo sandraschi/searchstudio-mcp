@@ -57,7 +57,9 @@ def _now_ms() -> int:
     return int(time.time() * 1000)
 
 
-def _client(timeout_s: float = 20.0, user_agent: str = "searchstudio-mcp/0.1.0") -> httpx.AsyncClient:
+def _client(
+    timeout_s: float = 20.0, user_agent: str = "searchstudio-mcp/0.1.0"
+) -> httpx.AsyncClient:
     return httpx.AsyncClient(
         timeout=httpx.Timeout(timeout_s, connect=8.0),
         headers={"User-Agent": user_agent},

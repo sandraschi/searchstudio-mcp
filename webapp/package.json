@@ -8,6 +8,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --port 11225",
     "lint": "biome check .",
+    "biome:ci": "biome check .",
     "check": "tsc --noEmit"
   },
   "dependencies": {

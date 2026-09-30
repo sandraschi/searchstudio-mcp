@@ -15,7 +15,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "pytest-asyncio>=0.24", "ruff>=0.14", "pyright>=1.1"]
+# ty omitted: no resolvable ty>=0.1 on the index at scaffold time (2026-09-30);
+# CI ty step is continue-on-error upstream and skips when absent.
+dev = ["pytest>=8", "pytest-asyncio>=0.24", "ruff>=0.16.0,<0.17", "pyright>=1.1", "pip-audit>=2.9"]
 
 [build-system]
 requires = ["hatchling"]
@@ -49,4 +51,4 @@ venvPath = "."
 venv = ".venv"
 
 [dependency-groups]
-dev = ["pytest>=8", "pytest-asyncio>=0.24", "ruff>=0.14", "pyright>=1.1"]
+dev = ["pytest>=8", "pytest-asyncio>=0.24", "ruff>=0.16.0,<0.17", "pyright>=1.1", "pip-audit>=2.9"]

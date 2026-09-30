@@ -1,0 +1,86 @@
+# Standard CI — Windows-only lightweight (fleet 2026), bun-adapted frontend.
+# Backend steps verbatim from mcp-central-docs/templates/ci.yml.template.
+# Frontend adapted for Bun (fleet BUN_STANDARDS): bun.lock detection,
+# bun install --frozen-lockfile, bun run check / biome:ci.
+# PowerShell 5.1 gate omitted: scripts/Test-Ps51Parse.ps1 does not exist
+# in templates yet (fleet sweep P2 pending); start.ps1 is a byte-copy of
+# the fleet template and start.bat/config are ASCII-only by construction.
+
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  check:
+    name: Lint & Test (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install Python dependencies
+        run: uv sync --extra dev
+
+      - name: Verify Ruff 0.16 and explicit select
+        shell: pwsh
+        run: |
+          $versionLine = uv run ruff --version
+          if ($versionLine -notmatch '0\.16\.') {
+            throw "Fleet requires Ruff 0.16.x (got: $versionLine). Pin ruff>=0.16.0,<0.17 in dev deps."
+          }
+          $toml = Get-Content pyproject.toml -Raw
+          if ($toml -notmatch '(?ms)\[tool\.ruff\.lint\].*?\bselect\s*=') {
+            throw "pyproject.toml must define [tool.ruff.lint] select = [...]."
+          }
+
+      - name: Ruff check
+        shell: pwsh
+        run: |
+          $paths = @('src')
+          if (Test-Path 'tests') { $paths += 'tests' }
+          uv run ruff check @paths
+
+      - name: Ruff format check
+        shell: pwsh
+        run: |
+          $paths = @('src')
+          if (Test-Path 'tests') { $paths += 'tests' }
+          uv run ruff format --check @paths
+
+      - name: Pyright typecheck
+        run: uv run pyright src
+
+      - name: Pytest
+        run: uv run python -m pytest tests/ -q --tb=short
+
+      - name: Install web dependencies
+        run: bun install --frozen-lockfile
+        working-directory: webapp
+
+      - name: Typecheck
+        run: bun run check
+        working-directory: webapp
+
+      - name: Biome check
+        run: bun run biome:ci
+        working-directory: webapp

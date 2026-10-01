@@ -31,6 +31,17 @@ In `claude_desktop_config.json`:
 
 Or copy `.env.example` to `.env` for local dev (gitignored - the backend starter loads it when configured).
 
+## Why keys live in JSON, not .env
+
+Fair question with a mechanical answer: a running process reads its
+`os.environ` once at startup. Keys in `.env` (or host config) therefore
+need a backend restart to take effect, and hand-editing files is exactly
+the friction the Settings page removes. `data/provider_keys.json` is read
+live on every search instead: paste, save, search immediately, no restart.
+Explicitly set process env still wins on conflict (12-factor first), and
+`.env` remains the documented manual path for automation and containers.
+Both are gitignored; neither is ever returned by any API.
+
 ## Settings-page keys (no restart needed)
 
 The webapp Settings page accepts `TAVILY_API_KEY`, `EXA_API_KEY`, and

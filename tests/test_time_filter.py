@@ -7,7 +7,7 @@ import json
 
 import httpx
 
-from super_search_mcp.providers import arxiv_local, ddg, openserp, tavily, wikipedia
+from super_search_mcp.providers import arxiv_local, ddg, exa, openserp, tavily, wikipedia
 
 
 def _client_with(handler, calls: list):
@@ -122,3 +122,28 @@ async def test_wikipedia_reports_unapplied(monkeypatch) -> None:
     p = wikipedia.WikipediaProvider()
     hits, receipt = await p.search("test", time_filter="day")
     assert len(hits) == 1 and receipt.time_filter_applied is False
+
+
+async def test_exa_sends_start_published_date(monkeypatch) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        body = json.loads(request.content.decode())
+        assert "startPublishedDate" in body
+        assert request.headers["x-api-key"] == "exa-test"
+        return _json_response({"results": []})
+
+    monkeypatch.setattr(exa, "_client", _client_with(handler, []))
+    p = exa.ExaProvider(api_key="exa-test")
+    _, receipt = await p.search("news", time_filter="week")
+    assert receipt.ok is True and receipt.time_filter_applied is True
+
+
+async def test_exa_omits_date_on_any(monkeypatch) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        body = json.loads(request.content.decode())
+        assert "startPublishedDate" not in body
+        return _json_response({"results": []})
+
+    monkeypatch.setattr(exa, "_client", _client_with(handler, []))
+    p = exa.ExaProvider(api_key="exa-test")
+    _, receipt = await p.search("news", time_filter="any")
+    assert receipt.time_filter_applied is False

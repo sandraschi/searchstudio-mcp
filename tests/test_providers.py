@@ -2,6 +2,8 @@
 
 from super_search_mcp.providers.arxiv_local import map_papers
 from super_search_mcp.providers.ddg import _real_url, parse_lite_html
+from super_search_mcp.providers.exa import ExaProvider
+from super_search_mcp.providers.exa import map_response as map_exa_response
 from super_search_mcp.providers.openserp import map_results
 from super_search_mcp.providers.tavily import TavilyProvider, map_response
 from super_search_mcp.providers.wikipedia import map_pages
@@ -79,3 +81,31 @@ def test_tavily_maps_response() -> None:
     }
     out = map_response(data)
     assert len(out) == 1 and len(out[0].snippet) == 500 and out[0].score == 0.9
+
+
+def test_exa_stub_without_key() -> None:
+    assert ExaProvider(api_key="").configured is False
+
+
+async def test_exa_stub_async() -> None:
+    p = ExaProvider(api_key="")
+    hits, receipt = await p.search("anything")
+    assert hits == [] and receipt.ok is False and receipt.configured is False
+
+
+def test_exa_maps_response() -> None:
+    data = {
+        "results": [
+            {
+                "title": "T",
+                "url": "https://e.test",
+                "text": "C" * 600,
+                "publishedDate": "2026-09-01",
+                "score": 0.7,
+            },
+            {"title": "x"},
+        ]
+    }
+    out = map_exa_response(data)
+    assert len(out) == 1 and len(out[0].snippet) == 500
+    assert out[0].published == "2026-09-01" and out[0].score == 0.7

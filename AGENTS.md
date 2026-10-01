@@ -1,4 +1,4 @@
-# searchstudio-mcp — AGENTS.md
+# searchstudio-mcp - AGENTS.md
 
 FastMCP Python server (Starlette backend) + React/Vite/Bun webapp. Infrastructure tier: consumed by other MCP servers, no Tauri/NSIS.
 
@@ -20,11 +20,11 @@ cd webapp; bun install; bun run dev                      # frontend
 
 ## Architecture
 
-- `src/super_search_mcp/providers/` — one module per provider, shared `Provider` protocol (base.py). Every provider returns `(hits, receipt)`; receipts are mandatory even on total failure.
-- `fanout.py` — parallel gather, kind-priority merge (fleet-local → knowledge → serp), URL-dedupe, health recording.
-- `db.py` — SQLite health ledger, WAL mode, short transactions. Advisory only: ledger failures never fail searches.
-- `server.py` — FastMCP portmanteau `searchops` + Prefab `provider_health_app`. All tools READ_ONLY + openWorldHint.
-- `backend.py` — Starlette routes + `/mcp` mount with `lifespan=_mcp_http.lifespan` (3.4.4 pitfall).
+- `src/super_search_mcp/providers/` - one module per provider, shared `Provider` protocol (base.py). Every provider returns `(hits, receipt)`; receipts are mandatory even on total failure.
+- `fanout.py` - parallel gather, kind-priority merge (fleet-local → knowledge → serp), URL-dedupe, health recording.
+- `db.py` - SQLite health ledger, WAL mode, short transactions. Advisory only: ledger failures never fail searches.
+- `server.py` - FastMCP portmanteau `searchops` + Prefab `provider_health_app`. All tools READ_ONLY + openWorldHint.
+- `backend.py` - Starlette routes + `/mcp` mount with `lifespan=_mcp_http.lifespan` (3.4.4 pitfall).
 - Adding a provider: new module in `providers/`, register in `providers/__init__.py`, keep the `(query, limit=...)` keyword-callable signature (dispatch contract test enforces it).
 
 ## Rules

@@ -1,4 +1,4 @@
-# searchstudio-mcp — CLAUDE.md
+# searchstudio-mcp - CLAUDE.md
 
 SearchStudio: parallel multi-provider fan-out (web, knowledge, fleet-local) with per-provider health receipts.
 
@@ -11,11 +11,11 @@ SearchStudio: parallel multi-provider fan-out (web, knowledge, fleet-local) with
 
 ## Key files
 
-- `src/super_search_mcp/fanout.py` — merge + dispatch (keyword args only, see dispatch test)
-- `src/super_search_mcp/providers/` — one module per provider
-- `src/super_search_mcp/server.py` — MCP tools (portmanteau + Prefab)
-- `src/super_search_mcp/backend.py` — Starlette REST + `/mcp`
-- `docs/PRD.md` — vision, phases, roadmap
+- `src/super_search_mcp/fanout.py` - merge + dispatch (keyword args only, see dispatch test)
+- `src/super_search_mcp/providers/` - one module per provider
+- `src/super_search_mcp/server.py` - MCP tools (portmanteau + Prefab)
+- `src/super_search_mcp/backend.py` - Starlette REST + `/mcp`
+- `docs/PRD.md` - vision, phases, roadmap
 
 ## Conventions
 

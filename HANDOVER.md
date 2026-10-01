@@ -19,7 +19,7 @@ work plan: `docs/ASSESSMENT_2026-09-30.md` (sections 1-9, work packages WP0-WP9)
 
 ## Last concrete action
 
-- WP2 done (opencode): `time_filter` is real — Tavily native, sibling hours,
+- WP2 done (opencode): `time_filter` is real - Tavily native, sibling hours,
   OpenSERP after:, DDG/Wikipedia declared-unapplied, receipt flag,
   freshness UI, 25 tests green, pushed. Live-proved against the real APIs.
 - WP1 done (opencode): skill:// registered + tested, dead button, promise

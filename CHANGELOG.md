@@ -1,6 +1,6 @@
-# Changelog — SearchStudio
+# Changelog - SearchStudio
 
-## [0.1.0] — 2026-09-30 (Phase 1 scaffold)
+## [0.1.0] - 2026-09-30 (Phase 1 scaffold)
 
 ### Added
 - Parallel fan-out across 5 providers in 3 kinds (fleet-local: arxiv-mcp; knowledge: Wikipedia; serp: OpenSERP-local, DuckDuckGo, Tavily keyed-or-stub)

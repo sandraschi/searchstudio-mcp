@@ -73,3 +73,74 @@ def test_endpoints_validate() -> None:
     assert r.status_code == 400
     r = client.delete("/api/provider-keys", params={"name": "EVIL"})
     assert r.status_code == 400
+
+
+def test_key_test_endpoint() -> None:
+    from starlette.testclient import TestClient
+
+    from super_search_mcp.backend import build_app
+    from super_search_mcp.providers import tavily as tavily_mod
+
+    class FakeTavily:
+        def __init__(self, api_key: str = "", timeout_s: float = 20.0):
+            self._key = api_key
+
+        async def search(self, query: str, limit: int = 10, time_filter: str = "any"):
+            from super_search_mcp.models import ProviderReceipt
+
+            if self._key != "tvly-good":
+                return [], ProviderReceipt(
+                    provider="tavily", kind="serp", ok=False, error="bad key"
+                )
+            return [], ProviderReceipt(provider="tavily", kind="serp", ok=True, latency_ms=120)
+
+    real = tavily_mod.TavilyProvider
+    tavily_mod.TavilyProvider = FakeTavily  # type: ignore[assignment]
+    try:
+        client = TestClient(build_app(), raise_server_exceptions=False)
+        r = client.post("/api/provider-keys/test", json={"name": "BRAVE_API_KEY"})
+        assert r.status_code == 400  # no live test for keyless/Phase-2 provider
+        r = client.post("/api/provider-keys/test", json={"name": "TAVILY_API_KEY"})
+        assert r.status_code == 400  # unset with no stored key
+        assert r.json()["success"] is False
+    finally:
+        tavily_mod.TavilyProvider = real
+
+
+def test_key_test_success_path(tmp_path, monkeypatch) -> None:
+    from starlette.testclient import TestClient
+
+    import super_search_mcp.backend as backend_mod
+    from super_search_mcp.backend import build_app
+    from super_search_mcp.config import Settings
+    from super_search_mcp.providers import tavily as tavily_mod
+
+    class FakeTavily:
+        def __init__(self, api_key: str = "", timeout_s: float = 20.0):
+            self._key = api_key
+
+        async def search(self, query: str, limit: int = 10, time_filter: str = "any"):
+            from super_search_mcp.models import ProviderReceipt
+
+            if self._key != "tvly-good":
+                return [], ProviderReceipt(
+                    provider="tavily", kind="serp", ok=False, error="bad key"
+                )
+            return [], ProviderReceipt(provider="tavily", kind="serp", ok=True, latency_ms=120)
+
+    settings = Settings()
+    settings.__dict__["data_dir"] = str(tmp_path)
+    monkeypatch.setattr(backend_mod, "settings", settings, raising=True)
+    monkeypatch.setattr(tavily_mod, "TavilyProvider", FakeTavily, raising=True)
+    monkeypatch.delenv("TAVILY_API_KEY", raising=False)
+    client = TestClient(build_app(), raise_server_exceptions=False)
+    r = client.post("/api/provider-keys", json={"name": "TAVILY_API_KEY", "key": "tvly-bad"})
+    assert r.json()["success"] is True
+    r = client.post("/api/provider-keys/test", json={"name": "TAVILY_API_KEY"})
+    assert r.json()["valid"] is False  # stored but wrong
+    r = client.post("/api/provider-keys", json={"name": "TAVILY_API_KEY", "key": "tvly-good"})
+    assert r.json()["success"] is True
+    r = client.post("/api/provider-keys/test", json={"name": "TAVILY_API_KEY"})
+    body = r.json()
+    assert body["valid"] is True and body["source"] == "file"
+    assert body["latency_ms"] == 120

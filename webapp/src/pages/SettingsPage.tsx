@@ -12,10 +12,22 @@ interface KeyStatus {
 const MANAGED_KEYS = [
   {
     key: "TAVILY_API_KEY",
-    desc: "Tavily AI-native search (free 1k/mo at tavily.com)",
+    desc: "Tavily AI-native search: ranked results plus page content, built for LLM agents",
+    url: "https://tavily.com",
+    urlLabel: "free 1k/mo, no card",
   },
-  { key: "EXA_API_KEY", desc: "Exa neural search" },
-  { key: "BRAVE_API_KEY", desc: "Brave grounding search (adapter Phase 2)" },
+  {
+    key: "EXA_API_KEY",
+    desc: "Exa neural search: finds by meaning, not just keywords",
+    url: "https://dashboard.exa.ai/api-keys",
+    urlLabel: "exa.ai dashboard",
+  },
+  {
+    key: "BRAVE_API_KEY",
+    desc: "Brave grounding search: clean snippets (adapter Phase 2)",
+    url: "https://brave.com/search/api",
+    urlLabel: "brave.com/search/api",
+  },
 ];
 
 function KeyForm() {
@@ -55,6 +67,35 @@ function KeyForm() {
       if (!data.success) throw new Error(data.error ?? "save failed");
       setInputs((prev) => ({ ...prev, [name]: "" }));
       setMsg(`${name} saved (server-side file, active immediately).`);
+      refresh();
+    } catch (e) {
+      setError(String(e));
+    }
+  }
+
+  async function testKey(name: string) {
+    setError("");
+    setMsg(`Testing ${name}…`);
+    try {
+      const resp = await fetch("/api/provider-keys/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      const data = (await resp.json()) as {
+        success: boolean;
+        valid?: boolean;
+        latency_ms?: number;
+        source?: string;
+        error?: string;
+        detail?: string;
+      };
+      if (!data.success) throw new Error(data.error ?? "test failed");
+      setMsg(
+        data.valid
+          ? `${name} valid (${data.source}, ${data.latency_ms}ms).`
+          : `${name} INVALID (${data.source}): ${data.detail ?? data.error ?? "rejected"}`,
+      );
       refresh();
     } catch (e) {
       setError(String(e));
@@ -111,6 +152,14 @@ function KeyForm() {
                 {st ? (st.set ? `set (${st.source})` : "unset") : "…"}
               </span>
               <span className="text-[11px] text-zinc-500">{row.desc}</span>
+              <a
+                href={row.url}
+                target="_blank"
+                rel="noreferrer"
+                className="text-[11px] text-primary hover:underline"
+              >
+                Get a key: {row.urlLabel}
+              </a>
             </div>
             <div className="mt-2 flex gap-2">
               <input
@@ -136,6 +185,14 @@ function KeyForm() {
                 className="rounded-lg bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-950 hover:bg-white"
               >
                 Save
+              </button>
+              <button
+                type="button"
+                onClick={() => testKey(row.key)}
+                data-testid={`key-test-${row.key}`}
+                className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:border-zinc-500"
+              >
+                Test
               </button>
               <button
                 type="button"

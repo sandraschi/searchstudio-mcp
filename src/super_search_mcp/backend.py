@@ -10,6 +10,7 @@ import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
+from typing import Any
 
 from starlette.applications import Starlette
 from starlette.responses import JSONResponse
@@ -69,6 +70,7 @@ async def capabilities(request):
                 "/api/providers",
                 "/api/matrix",
                 "/api/provider-keys",
+                "/api/provider-keys/test",
             ],
             "provider_kinds": ["fleet-local", "knowledge", "serp"],
         }
@@ -182,6 +184,56 @@ async def api_provider_keys_delete(request):
     return JSONResponse({"success": True, "name": name, "removed": removed})
 
 
+async def api_provider_keys_test(request):
+    """POST {name}: spend one minimal call to check the key is valid.
+
+    Uses the resolved key (env first, stored file second) for a limit=1
+    probe query. Only Tavily/Exa support it (the keyed providers).
+    """
+    from .config import resolve_key
+
+    try:
+        body = await request.json()
+    except Exception:
+        return JSONResponse({"success": False, "error": "invalid JSON body"}, status_code=400)
+    name = (body.get("name") or "").strip()
+    provider: Any = None
+    if name == "TAVILY_API_KEY":
+        from .providers.tavily import TavilyProvider
+
+        key, source = resolve_key(settings, name)
+        provider = TavilyProvider(api_key=key)
+    elif name == "EXA_API_KEY":
+        from .providers.exa import ExaProvider
+
+        key, source = resolve_key(settings, name)
+        provider = ExaProvider(api_key=key)
+    else:
+        return JSONResponse(
+            {"success": False, "error": f"no live test for {name or '(empty)'}"},
+            status_code=400,
+        )
+    if not key:
+        return JSONResponse(
+            {"success": False, "error": f"{name} is unset (no env, no stored key)"},
+            status_code=400,
+        )
+    try:
+        hits, receipt = await provider.search("test", limit=1)
+    except Exception as e:
+        return JSONResponse({"success": False, "error": f"probe crashed: {e}"})
+    return JSONResponse(
+        {
+            "success": True,
+            "name": name,
+            "source": source,
+            "valid": bool(receipt.ok),
+            "latency_ms": receipt.latency_ms,
+            "detail": receipt.error or f"{receipt.count} hit(s) returned",
+        }
+    )
+
+
 def build_app() -> Starlette:
     _mcp_http = mcp.http_app(path="/")
 
@@ -202,6 +254,7 @@ def build_app() -> Starlette:
         Route("/api/provider-keys", api_provider_keys, methods=["GET"]),
         Route("/api/provider-keys", api_provider_keys_save, methods=["POST"]),
         Route("/api/provider-keys", api_provider_keys_delete, methods=["DELETE"]),
+        Route("/api/provider-keys/test", api_provider_keys_test, methods=["POST"]),
     ]
     app = Starlette(routes=routes, lifespan=_lifespan_all)
     app.mount("/mcp", _mcp_http)

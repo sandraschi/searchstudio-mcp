@@ -68,6 +68,7 @@ async def capabilities(request):
                 "/api/search",
                 "/api/providers",
                 "/api/matrix",
+                "/api/provider-keys",
             ],
             "provider_kinds": ["fleet-local", "knowledge", "serp"],
         }
@@ -136,6 +137,51 @@ async def api_matrix(request):
     return JSONResponse(await searchops(operation="self_test"))
 
 
+async def api_provider_keys(request):
+    """GET: key status (set/unset + source, never values)."""
+    from .config import MANAGED_KEY_NAMES, resolve_key
+
+    return JSONResponse(
+        {
+            "success": True,
+            "keys": [
+                {"name": name, "set": bool(key), "source": source}
+                for name in MANAGED_KEY_NAMES
+                for key, source in [resolve_key(settings, name)]
+            ],
+        }
+    )
+
+
+async def api_provider_keys_save(request):
+    """POST {name, key}: store a UI-entered key (allowlisted names only)."""
+    from .config import save_file_key
+
+    try:
+        body = await request.json()
+    except Exception:
+        return JSONResponse({"success": False, "error": "invalid JSON body"}, status_code=400)
+    name = (body.get("name") or "").strip()
+    key = body.get("key") or ""
+    try:
+        save_file_key(settings.data_dir, name, key)
+    except ValueError as e:
+        return JSONResponse({"success": False, "error": str(e)}, status_code=400)
+    return JSONResponse({"success": True, "name": name, "source": "file"})
+
+
+async def api_provider_keys_delete(request):
+    """DELETE ?name=: remove a UI-stored key (env-set keys are unaffected)."""
+    from .config import delete_file_key
+
+    name = (request.query_params.get("name") or "").strip()
+    try:
+        removed = delete_file_key(settings.data_dir, name)
+    except ValueError as e:
+        return JSONResponse({"success": False, "error": str(e)}, status_code=400)
+    return JSONResponse({"success": True, "name": name, "removed": removed})
+
+
 def build_app() -> Starlette:
     _mcp_http = mcp.http_app(path="/")
 
@@ -153,6 +199,9 @@ def build_app() -> Starlette:
         Route("/api/search", api_search),
         Route("/api/providers", api_providers),
         Route("/api/matrix", api_matrix),
+        Route("/api/provider-keys", api_provider_keys, methods=["GET"]),
+        Route("/api/provider-keys", api_provider_keys_save, methods=["POST"]),
+        Route("/api/provider-keys", api_provider_keys_delete, methods=["DELETE"]),
     ]
     app = Starlette(routes=routes, lifespan=_lifespan_all)
     app.mount("/mcp", _mcp_http)

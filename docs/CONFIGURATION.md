@@ -30,3 +30,13 @@ In `claude_desktop_config.json`:
 ```
 
 Or copy `.env.example` to `.env` for local dev (gitignored - the backend starter loads it when configured).
+
+## Settings-page keys (no restart needed)
+
+The webapp Settings page accepts `TAVILY_API_KEY`, `EXA_API_KEY`, and
+`BRAVE_API_KEY` through password inputs. They are stored in the gitignored
+server-side file `data/provider_keys.json` (never logged, never returned by
+any API - status endpoints report set/unset + source only) and take effect
+immediately: providers resolve keys live on every call. Explicitly set
+process env always wins over the stored file. Clearing removes the stored
+entry (env-set keys are unaffected).

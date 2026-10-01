@@ -7,12 +7,82 @@ Secrets live in env or the host config - never in this repo.
 
 from __future__ import annotations
 
+import json
 import os
 from dataclasses import dataclass, field
+from pathlib import Path
 
 
 def _env(name: str, default: str = "") -> str:
     return os.environ.get(name, default).strip()
+
+
+# API keys the Settings page may store. Closed allowlist: the key API
+# rejects anything else, so a compromised caller cannot plant arbitrary env.
+MANAGED_KEY_NAMES = ("TAVILY_API_KEY", "EXA_API_KEY", "BRAVE_API_KEY")
+KEY_FILE_NAME = "provider_keys.json"
+
+
+def key_file_path(data_dir: str | Path) -> Path:
+    return Path(data_dir) / KEY_FILE_NAME
+
+
+def _is_stored_key(k: object, v: object) -> bool:
+    return k in MANAGED_KEY_NAMES and isinstance(v, str) and bool(v.strip())
+
+
+def load_file_keys(data_dir: str | Path) -> dict[str, str]:
+    """Read UI-stored keys (gitignored). Corrupt file reads as empty, never crashes."""
+    try:
+        raw = key_file_path(data_dir).read_text(encoding="utf-8")
+        data = json.loads(raw)
+        if not isinstance(data, dict):
+            return {}
+        return {k: v for k, v in data.items() if _is_stored_key(k, v)}
+    except (OSError, ValueError):
+        return {}
+
+
+def save_file_key(data_dir: str | Path, name: str, key: str) -> None:
+    """Persist one UI-entered key. Raises ValueError on bad name/empty key."""
+    if name not in MANAGED_KEY_NAMES:
+        raise ValueError(f"refusing to store unmanaged key name: {name}")
+    key = (key or "").strip()
+    if not key or len(key) > 500:
+        raise ValueError("key must be 1..500 chars")
+    path = key_file_path(data_dir)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    stored = load_file_keys(data_dir)
+    stored[name] = key
+    path.write_text(json.dumps(stored, indent=2), encoding="utf-8")
+
+
+def delete_file_key(data_dir: str | Path, name: str) -> bool:
+    """Remove one UI-stored key. Returns True when something was removed."""
+    if name not in MANAGED_KEY_NAMES:
+        raise ValueError(f"refusing to delete unmanaged key name: {name}")
+    path = key_file_path(data_dir)
+    stored = load_file_keys(data_dir)
+    if name not in stored:
+        return False
+    del stored[name]
+    path.write_text(json.dumps(stored, indent=2), encoding="utf-8")
+    return True
+
+
+def resolve_key(settings: Settings, name: str) -> tuple[str, str]:
+    """Return (key, source) with env winning over the UI-stored file.
+
+    Live-read on every call: keys entered in Settings take effect without
+    a backend restart. Env explicitly set always wins (12-factor first).
+    """
+    env_val = os.environ.get(name, "").strip()
+    if env_val:
+        return env_val, "env"
+    file_val = load_file_keys(settings.data_dir).get(name, "")
+    if file_val:
+        return file_val, "file"
+    return "", "unset"
 
 
 @dataclass(frozen=True)

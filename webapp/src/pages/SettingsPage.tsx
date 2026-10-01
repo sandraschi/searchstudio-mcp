@@ -32,7 +32,7 @@ export default function SettingsPage() {
           {llm.available === null
             ? "Detecting Ollama on :11434…"
             : llm.available
-              ? `Ollama up — default model ${llm.model || "(none loaded)"}`
+              ? `Ollama up - default model ${llm.model || "(none loaded)"}`
               : "Ollama not detected. Install from ollama.com and pull any chat model to enable Chat."}
         </p>
       </div>
@@ -42,7 +42,7 @@ export default function SettingsPage() {
         <p className="mt-1 text-xs text-zinc-400">
           Keyless providers (OpenSERP-local, DuckDuckGo, Wikipedia, arxiv-mcp)
           work with zero setup. Keys unlock SaaS providers and are read from
-          process env — never pasted here, never committed.
+          process env - never pasted here, never committed.
         </p>
         <div className="mt-2 space-y-1.5">
           {[

@@ -24,7 +24,9 @@ EXTS = {".md", ".py", ".tsx", ".ts"}
 
 
 def normalize_file(path: Path) -> int:
-    text = path.read_text(encoding="utf-8")
+    # newline="": never let Windows text-mode translation sneak CRLF in.
+    with path.open("r", encoding="utf-8", newline="") as f:
+        text = f.read()
     count = 0
     for bad, good in REPLACEMENTS.items():
         n = text.count(bad)
@@ -32,7 +34,8 @@ def normalize_file(path: Path) -> int:
             text = text.replace(bad, good)
             count += n
     if count:
-        path.write_text(text, encoding="utf-8")
+        with path.open("w", encoding="utf-8", newline="\n") as f:
+            f.write(text)
     return count
 
 

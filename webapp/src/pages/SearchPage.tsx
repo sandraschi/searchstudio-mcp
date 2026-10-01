@@ -175,7 +175,7 @@ export default function SearchPage() {
             ))}
             {result.hits.length === 0 && (
               <p className="text-sm text-zinc-500">
-                No hits. Check the receipts below — if no provider answered,
+                No hits. Check the receipts below - if no provider answered,
                 nothing was searched.
               </p>
             )}

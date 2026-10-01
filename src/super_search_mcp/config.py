@@ -2,7 +2,7 @@
 
 Every provider works without credentials except Tavily/Exa/Brave, which
 degrade to declared stubs (configured=False + setup hint) when unset.
-Secrets live in env or the host config — never in this repo.
+Secrets live in env or the host config - never in this repo.
 """
 
 from __future__ import annotations

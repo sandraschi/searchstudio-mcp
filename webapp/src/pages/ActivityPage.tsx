@@ -39,12 +39,12 @@ export default function ActivityPage() {
       </div>
       <p className="text-xs text-zinc-500">
         Every fan-out records one row per provider attempt. This is the usage
-        trail — who searched, who answered, who blocked.
+        trail - who searched, who answered, who blocked.
       </p>
       {error && <p className="text-sm text-red-400">{error}</p>}
       {rows.length === 0 && !error ? (
         <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-8 text-center text-sm text-zinc-500">
-          Quiet here — no searches recorded in the last 7 days. Run one from the
+          Quiet here - no searches recorded in the last 7 days. Run one from the
           Search console.
         </div>
       ) : (

@@ -1,4 +1,4 @@
-# Onboarding — SearchStudio
+# Onboarding - SearchStudio
 
 ## What this is for
 
@@ -19,24 +19,24 @@ not a crawler, not an answer engine (condensing arrives in Phase 3).
 
 ## Prerequisites outside this repo
 
-- Docker Desktop + openserp container — only for the OpenSERP-local provider (everything else works without it)
-- arxiv-mcp backend on :10770 — only for fleet-local results (degrades gracefully when down)
-- Ollama on :11434 with any chat model — only for the webapp Chat page
+- Docker Desktop + openserp container - only for the OpenSERP-local provider (everything else works without it)
+- arxiv-mcp backend on :10770 - only for fleet-local results (degrades gracefully when down)
+- Ollama on :11434 with any chat model - only for the webapp Chat page
 - Optional API keys: `TAVILY_API_KEY` (free 1k/mo at tavily.com), later Exa/Brave
 
 ## First-timer setup steps
 
 1. Install via Option A (mcpb drag-drop) or C (clone + uv sync) from INSTALL.md.
-2. Open the webapp Dashboard — provider cards show what is ready.
+2. Open the webapp Dashboard - provider cards show what is ready.
 3. If a card says "not configured" and you want it: Settings page names the exact env var. Set it, restart the backend.
 4. Sanity check below, then search.
 
 ## Pitfalls
 
-- OpenSERP-local empty + "is Docker running?" hint: Docker Desktop must be up with the container on :7000 (BIOS virtualization must be enabled — no virtualization, no Docker, ever).
+- OpenSERP-local empty + "is Docker running?" hint: Docker Desktop must be up with the container on :7000 (BIOS virtualization must be enabled - no virtualization, no Docker, ever).
 - Keys go in process env or host config, never the repo, never chat. Backend restart required after setting.
 - Empty hits + failed receipts = nothing was searched, not "doesn't exist". Check Providers before concluding.
-- Breaking news lives in one index for its first 48h — fan out wide, distrust unanimous silence.
+- Breaking news lives in one index for its first 48h - fan out wide, distrust unanimous silence.
 
 ## Sanity check
 

@@ -29,4 +29,4 @@ In `claude_desktop_config.json`:
 }
 ```
 
-Or copy `.env.example` to `.env` for local dev (gitignored — the backend starter loads it when configured).
+Or copy `.env.example` to `.env` for local dev (gitignored - the backend starter loads it when configured).

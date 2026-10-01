@@ -1,4 +1,4 @@
-# Tool Reference — SearchStudio (`searchops`)
+# Tool Reference - SearchStudio (`searchops`)
 
 All tools are READ_ONLY + openWorldHint. No destructive operations exist.
 

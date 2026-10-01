@@ -1,20 +1,20 @@
-# SearchStudio — Product Requirements Document
+# SearchStudio - Product Requirements Document
 
 **Version:** 1.0 (2026-09-30) · **Status:** Phase 1 build in progress
 **Repo:** `searchstudio-mcp` · **Alias:** `searchstudio` · **Ports:** FE 11225 / BE 11226
-**Tier:** Infrastructure (no Tauri/NSIS — consumed by servers, webapp for diagnostics)
+**Tier:** Infrastructure (no Tauri/NSIS - consumed by servers, webapp for diagnostics)
 
 ## 1. Vision
 
 Every AI coding helper is only as good as its freshest fact, and web search
 is the least reliable primitive in the fleet: intermittently blocked,
 differently indexed per engine, silently empty when the pipe is dead. Solo
-developers feel this worst — they hit it three times a year, re-learn the
+developers feel this worst - they hit it three times a year, re-learn the
 maze every time, and have no team to absorb the flakiness.
 
 SearchStudio is the Voicestudio play applied to search: aggregate the good
 FOSS search tools, unify them behind one interface, and add the layer nobody
-ships — parallel fan-out with adaptive ordering, per-provider health
+ships - parallel fan-out with adaptive ordering, per-provider health
 receipts, and a built-in flakiness self-test. One query in, best available
 answers out, with receipts showing which pipes answered and which blocked.
 
@@ -26,7 +26,7 @@ Target: the fleet's research front-end, and a public repo strangers star.
 |---|---|---|
 | L1 | Fleet agents/devs (other MCP servers, opencode, Claude Desktop) | MCP tools always answer; degraded pipes reported, never silent |
 | L2 | Technical users (webapp) | Search console, provider health, matrix harness, skill + chat |
-| L3 | Future (Phase 3+) | AI-condensed answers, not links — local-first, cloud opt-in |
+| L3 | Future (Phase 3+) | AI-condensed answers, not links - local-first, cloud opt-in |
 
 ## 3. Provider taxonomy (the core design)
 
@@ -37,10 +37,10 @@ kind-agnostic: every provider returns the same result shape + receipt.
   (keyless HTTP fallback), Tavily (keyed, `TAVILY_API_KEY`; declared stub
   without key). Exa/Brave adapters later, same interface.
 - **Knowledge** (curated, keyless APIs): Wikipedia (MediaWiki opensearch +
-  extracts — local history to trivia), TVTropes (via tvtropes-mcp
+  extracts - local history to trivia), TVTropes (via tvtropes-mcp
   crossconnect, no re-scraping). Later, ranked: PubMed/Entrez, HN Algolia,
   StackExchange, SHARE/OSF, Nominatim, user-provided SearXNG.
-- **Fleet-local** (our knowledge: free, private, instant — queried first):
+- **Fleet-local** (our knowledge: free, private, instant - queried first):
   arxiv-mcp (`/api/preprints/search`, verified live), then mcd depot +
   memops RAG (endpoints to verify, Phase 2).
 
@@ -50,7 +50,7 @@ free, and fast before broad, billed, and flaky. Kind selection per call
 
 ## 4. Tool surface (one portmanteau + two satellites)
 
-`searchops(operation=...)` — operations:
+`searchops(operation=...)` - operations:
 
 | Operation | What | Phase |
 |---|---|---|
@@ -65,7 +65,7 @@ Satellites: `searchops_status` (health + config as Prefab card), `searchops_help
 ## 5. Backend (Starlette 1.0 + FastMCP ≥3.4.4,<5)
 
 - REST: `/api/health` (configured/providers/authenticated shape), `/api/capabilities` (mandatory), `/api/skills` + `/skill/{name}`, `/api/search` (mirrors super_search), `/api/providers`, `/api/matrix` (self-test trigger).
-- MCP: same tools over stdio (local dev) and `/mcp` HTTP (fleet consumers). `lifespan=_mcp_http.lifespan` on the parent app (3.4.4 pitfall). No stdio+HTTP on one instance — stdio is a probe to the HTTP daemon.
+- MCP: same tools over stdio (local dev) and `/mcp` HTTP (fleet consumers). `lifespan=_mcp_http.lifespan` on the parent app (3.4.4 pitfall). No stdio+HTTP on one instance - stdio is a probe to the HTTP daemon.
 - State: SQLite health DB (`data/`, gitignored), WAL mode, short transactions, per-provider locking (concurrency standard).
 - Errors: dialogic returns (`success/error/error_type/suggestions`) everywhere; dead provider = reported exclusion, never silent zero; `_error_response` auto-logs tracebacks.
 - No fakes: keyless Tavily = declared stub (`configured: false` + setup hint). Mocks only in tests, named fixtures.

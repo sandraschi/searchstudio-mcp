@@ -1,6 +1,6 @@
 # SearchStudio
 
-**Super search is all you need.** One query fans out in parallel across web search (OpenSERP, DuckDuckGo, Tavily), curated knowledge (Wikipedia), and your arXiv depot — then merges, dedupes, and shows receipts for which pipes answered and which blocked.
+**Super search is all you need.** One query fans out in parallel across web search (OpenSERP, DuckDuckGo, Tavily), curated knowledge (Wikipedia), fresh preprint search and your own paper library (arXiv depot) - then merges, dedupes, and shows receipts for which pipes answered and which blocked.
 
 [![Status](https://img.shields.io/badge/status-phase%201-blue)]()
 [![FastMCP](https://img.shields.io/badge/FastMCP-%3E%3D3.4.4-green)]()
@@ -11,14 +11,14 @@
 | Search console | Provider health |
 |---|---|
 | ![Search console](docs/screenshots/search.png) | ![Provider health](docs/screenshots/providers.png) |
-| *One query, three provider kinds, receipts per pipe.* | *Success rate, latency, block rate — the arms race, quantified.* |
+| *One query, three provider kinds, receipts per pipe.* | *Success rate, latency, block rate - the arms race, quantified.* |
 
 ## What You Can Do
 
-- Ask once, search everywhere — [web search](#serp), [Wikipedia](#wikipedia), your [arXiv depot](#arxiv-depot)
+- Ask once, search everywhere - [web search](#serp), [Wikipedia](#wikipedia), fresh [preprints](#arxiv-preprints) plus your own [paper library](#arxiv-paper-library)
 - See *receipts*: which [providers](#providers-and-targets) answered, which were blocked, how slow each was
-- Keep working when pipes die — dead providers are skipped *and reported*, never silent zeros
-- Run the flakiness matrix on demand — measure the iffiness instead of vibing it
+- Keep working when pipes die - dead providers are skipped *and reported*, never silent zeros
+- Run the flakiness matrix on demand - measure the iffiness instead of vibing it
 - Chat with a search-expert skill, 3 personalities + custom prompt, local Ollama first
 
 ## How It Runs
@@ -31,15 +31,15 @@ Beginner-friendly guide to every name in this README. Experts: skip ahead.
 
 ### SERP
 
-Search Engine Results Page — the generic term for "web search." Google, Bing, and DuckDuckGo are all SERP providers: you send words, they send ranked links. When we say "serp kind," we mean these whole-web engines as a group.
+Search Engine Results Page - the generic term for "web search." Google, Bing, and DuckDuckGo are all SERP providers: you send words, they send ranked links. When we say "serp kind," we mean these whole-web engines as a group.
 
 ### OpenSERP
 
-Free, open-source search software ([karust/openserp](https://github.com/karust/openserp)) that you run yourself in Docker. It queries six engines (Google, Bing, Yandex, Baidu, DuckDuckGo, Ecosia) and returns clean structured data — a free replacement for paid search APIs. Our default OpenSERP provider talks to your local copy; if Docker is down, it says so instead of silently returning nothing.
+Free, open-source search software ([karust/openserp](https://github.com/karust/openserp)) that you run yourself in Docker. It queries six engines (Google, Bing, Yandex, Baidu, DuckDuckGo, Ecosia) and returns clean structured data - a free replacement for paid search APIs. Our default OpenSERP provider talks to your local copy; if Docker is down, it says so instead of silently returning nothing.
 
 ### DuckDuckGo
 
-The privacy-focused search engine ([duckduckgo.com](https://duckduckgo.com)). We query its lightweight results page directly — no key, no account. Independent index and independent bot-luck from Google, which is exactly why it is in the fan-out: it answers when others block.
+The privacy-focused search engine ([duckduckgo.com](https://duckduckgo.com)). We query its lightweight results page directly - no key, no account. Independent index and independent bot-luck from Google, which is exactly why it is in the fan-out: it answers when others block.
 
 ### Tavily
 
@@ -47,7 +47,7 @@ AI-native search API ([tavily.com](https://tavily.com)) built for LLM agents: ra
 
 ### Exa
 
-Neural search API ([exa.ai](https://exa.ai)) that finds by meaning, not just keywords. Phase 2 provider — same interface, needs a key when it lands.
+Neural search API ([exa.ai](https://exa.ai)) that finds by meaning, not just keywords. Phase 2 provider - same interface, needs a key when it lands.
 
 ### Brave
 
@@ -55,19 +55,23 @@ Privacy search API ([brave.com/search/api](https://brave.com/search/api)) with c
 
 ### Wikipedia
 
-The free encyclopedia, queried through its official API (no key, generous limits). Best for entities, places, techniques, and history — intro extracts answer most questions in three sentences. A starting point for research, never the final citation.
+The free encyclopedia, queried through its official API (no key, generous limits). Best for entities, places, techniques, and history - intro extracts answer most questions in three sentences. A starting point for research, never the final citation.
 
-### arXiv depot
+### arXiv preprints
 
-Our sibling [arxiv-mcp](https://github.com/sandraschi/arxiv-mcp) indexes physics, CS, math, bio, and more preprints (arXiv plus bioRxiv, medRxiv, ChemRxiv, Research Square, SocArXiv, PsyArXiv). SearchStudio queries it as a fleet-local provider: your own papers, free, private, instant.
+Our sibling [arxiv-mcp](https://github.com/sandraschi/arxiv-mcp) searches fresh preprints across physics, CS, math, bio, and more (arXiv plus bioRxiv, medRxiv, ChemRxiv, Research Square, SocArXiv, PsyArXiv). SearchStudio queries it as a fleet-local provider: the world's new papers, free, private, instant.
+
+### arXiv paper library
+
+The same sibling keeps your personally saved papers (ingested full text, searchable by keyword, meaning, or hybrid). SearchStudio queries that library as a second fleet-local provider: your papers, not the world's - different answers from the same sibling.
 
 ### Memory vault
 
-Your personal knowledge base in [advanced-memory-mcp](https://github.com/sandraschi/advanced-memory-mcp) (memops): notes, inbox captures, distilled skills, searchable by meaning. Phase 3 crossconnect — today's searches become tomorrow's fleet-local answers.
+Your personal knowledge base in [advanced-memory-mcp](https://github.com/sandraschi/advanced-memory-mcp) (memops): notes, inbox captures, distilled skills, searchable by meaning. Phase 3 crossconnect - today's searches become tomorrow's fleet-local answers.
 
 ## Quick Install
 
-Fastest working path today (first `.mcpb` release pending — no Releases exist yet):
+Fastest working path today (first `.mcpb` release pending - no Releases exist yet):
 
 ```bash
 git clone https://github.com/sandraschi/searchstudio-mcp
@@ -79,7 +83,7 @@ Backend on `:11226`, webapp on `:11225`. See [INSTALL.md](INSTALL.md) for all me
 
 ## Example Prompts
 
-> Super-search the AMD–World Labs acquisition across web and news, newest first.
+> Super-search the AMD-World Labs acquisition across web and news, newest first.
 
 > Which providers are healthy right now, and who's been blocked today?
 
@@ -114,9 +118,9 @@ Companions are optional and self-contained; nothing requires transitive installs
 
 - Windows 10/11 (or any OS for stdio use), Python 3.11+ via `uv`
 - Claude Desktop (or opencode / any MCP host)
-- Docker *optional* — only for the OpenSERP-local provider; DDG + Wikipedia work without it
-- No API keys required — Tavily/Exa/Brave keys unlock extra providers only
+- Docker *optional* - only for the OpenSERP-local provider; DDG + Wikipedia work without it
+- No API keys required - Tavily/Exa/Brave keys unlock extra providers only
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT - see [LICENSE](LICENSE).

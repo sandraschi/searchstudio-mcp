@@ -1,5 +1,11 @@
 """Provider unit tests: pure mappers offline; network never touched in CI."""
 
+from super_search_mcp.providers.arxiv_depot import (
+    clean_snippet,
+)
+from super_search_mcp.providers.arxiv_depot import (
+    map_hits as map_depot_hits,
+)
 from super_search_mcp.providers.arxiv_local import map_papers
 from super_search_mcp.providers.ddg import _real_url, parse_lite_html
 from super_search_mcp.providers.exa import ExaProvider
@@ -109,3 +115,19 @@ def test_exa_maps_response() -> None:
     out = map_exa_response(data)
     assert len(out) == 1 and len(out[0].snippet) == 500
     assert out[0].published == "2026-09-01" and out[0].score == 0.7
+
+
+def test_depot_cleans_marks() -> None:
+    assert clean_snippet("a <mark>highlighted</mark> bit") == "a highlighted bit"
+
+
+def test_depot_maps_records() -> None:
+    recs = [
+        {"arxiv_id": "1706.03762", "title": "Attention", "snippet": "x <mark>y</mark> z"},
+        {"arxiv_id": "", "title": ""},
+        "junk",
+    ]
+    out = map_depot_hits(recs)
+    assert len(out) == 1
+    assert out[0].url == "https://arxiv.org/abs/1706.03762"
+    assert out[0].snippet == "x y z" and out[0].provider == "arxiv-depot"

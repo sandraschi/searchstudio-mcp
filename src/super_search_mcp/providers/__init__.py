@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from .arxiv_depot import ArxivDepotProvider
 from .arxiv_local import ArxivMcpProvider
 from .ddg import DuckDuckGoProvider
 from .exa import ExaProvider
@@ -11,9 +12,12 @@ from .wikipedia import WikipediaProvider
 
 
 def build_providers(settings) -> list:
-    """All Phase 1 providers. Keyless ones always active; Tavily/Exa degrade to stubs."""
+    """Phase 1 providers. Keyless always active; Tavily/Exa degrade to stubs."""
     return [
         ArxivMcpProvider(
+            base_url=settings.arxiv_mcp_base_url, timeout_s=settings.default_timeout_s
+        ),
+        ArxivDepotProvider(
             base_url=settings.arxiv_mcp_base_url, timeout_s=settings.default_timeout_s
         ),
         WikipediaProvider(timeout_s=settings.default_timeout_s),

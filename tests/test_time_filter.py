@@ -7,13 +7,21 @@ import json
 
 import httpx
 
-from super_search_mcp.providers import arxiv_local, ddg, exa, openserp, tavily, wikipedia
+from super_search_mcp.providers import (
+    arxiv_depot,
+    arxiv_local,
+    ddg,
+    exa,
+    openserp,
+    tavily,
+    wikipedia,
+)
 
 
 def _client_with(handler, calls: list):
     def make(timeout_s: float = 20.0, user_agent: str = "x"):
         def wrapped(request: httpx.Request) -> httpx.Response:
-            calls.append(request)
+            calls.append(str(request.url))
             return handler(request)
 
         return httpx.AsyncClient(transport=httpx.MockTransport(wrapped))
@@ -147,3 +155,30 @@ async def test_exa_omits_date_on_any(monkeypatch) -> None:
     p = exa.ExaProvider(api_key="exa-test")
     _, receipt = await p.search("news", time_filter="any")
     assert receipt.time_filter_applied is False
+
+
+async def test_depot_sends_max_age_days(monkeypatch) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert "max_age_days=7" in str(request.url)
+        return _json_response({"hits": []})
+
+    monkeypatch.setattr(arxiv_depot, "_client", _client_with(handler, []))
+    p = arxiv_depot.ArxivDepotProvider(base_url="http://127.0.0.1:10770")
+    hits, receipt = await p.search("test", time_filter="week")
+    assert hits == [] and receipt.ok is True
+    assert receipt.time_filter_applied is True
+
+
+async def test_depot_falls_back_to_fts_on_503(monkeypatch) -> None:
+    calls: list = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if "mode=hybrid" in str(request.url):
+            return httpx.Response(503, text="no vector index")
+        return _json_response({"hits": []})
+
+    monkeypatch.setattr(arxiv_depot, "_client", _client_with(handler, calls))
+    p = arxiv_depot.ArxivDepotProvider(base_url="http://127.0.0.1:10770")
+    _, receipt = await p.search("test")
+    assert receipt.ok is True
+    assert any("mode=fts" in u for u in calls)

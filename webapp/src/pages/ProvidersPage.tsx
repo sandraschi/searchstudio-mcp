@@ -132,7 +132,7 @@ export default function ProvidersPage() {
           <p className="text-sm font-medium">Flakiness matrix</p>
           {matrix.map((m) => (
             <p key={m.probe} className="mt-1 text-xs text-zinc-400">
-              “{m.probe}” — {m.total} hits
+              "{m.probe}" - {m.total} hits
               {m.failed.length > 0 && (
                 <span className="text-red-400">
                   {" "}

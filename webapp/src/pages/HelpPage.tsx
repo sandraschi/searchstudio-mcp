@@ -7,7 +7,7 @@ const FAQ: Array<[string, string]> = [
   ],
   [
     "Search returned nothing. Is that real?",
-    "Only if receipts show providers answered. Empty hits + failed receipts means nothing was searched — check Providers.",
+    "Only if receipts show providers answered. Empty hits + failed receipts means nothing was searched - check Providers.",
   ],
   [
     "Why does one engine work and another fail?",

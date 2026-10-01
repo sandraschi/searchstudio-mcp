@@ -197,7 +197,7 @@ export default function ChatPage() {
         {messages.length === 0 && (
           <div>
             <p className="text-sm text-zinc-400">
-              Ask about searching — providers, receipts, keys, flakiness.
+              Ask about searching - providers, receipts, keys, flakiness.
             </p>
             <div
               className="mt-2 flex flex-wrap gap-1.5"

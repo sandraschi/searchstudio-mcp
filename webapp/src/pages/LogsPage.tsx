@@ -16,11 +16,11 @@ export default function LogsPage() {
           </li>
           <li>
             Every tool failure auto-logs a full traceback server-side (shared
-            error helper) — ask for the backend window, not the chat transcript.
+            error helper) - ask for the backend window, not the chat transcript.
           </li>
           <li>
             Provider attempt history lives in the SQLite ledger (
-            <span className="font-mono">data/searchstudio.sqlite3</span>) — see
+            <span className="font-mono">data/searchstudio.sqlite3</span>) - see
             the Activity page for the 7-day view.
           </li>
         </ul>

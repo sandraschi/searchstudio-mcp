@@ -44,7 +44,7 @@ export default function DashboardPage() {
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-zinc-400">
           One query fans out across fleet-local knowledge, curated sources, and
-          web search — merged, deduped, with receipts per provider.
+          web search - merged, deduped, with receipts per provider.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           {QUICK.map((q) => (
@@ -69,7 +69,7 @@ export default function DashboardPage() {
             data-testid="onboarding-cue"
             className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-500"
           >
-            Complete provider setup — {unconfigured.length} optional provider
+            Complete provider setup - {unconfigured.length} optional provider
             {unconfigured.length === 1 ? "" : "s"} unconfigured
           </Link>
         )}

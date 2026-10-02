@@ -65,6 +65,9 @@ class TavilyProvider:
                 started_ms=started,
                 error="Tavily not configured (TAVILY_API_KEY unset). Keyless providers still ran.",
                 configured=False,
+                fault_kind="unconfigured",
+                user_message="No Tavily key yet.",
+                what_to_do="Get one at tavily.com and set TAVILY_API_KEY. The rest keeps working.",
             )
         q = (query or "").strip()
         if not q:
@@ -99,6 +102,9 @@ class TavilyProvider:
                 hits=[],
                 started_ms=started,
                 error=f"Tavily request failed: {e}",
+                fault_kind="down",
+                user_message="Tavily request failed.",
+                what_to_do="Check the key and try again; other providers already ran.",
             )
         hits = map_response(data)[: max(limit, 1)]
         return hits, _receipt(

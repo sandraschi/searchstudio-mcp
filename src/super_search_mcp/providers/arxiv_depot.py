@@ -101,6 +101,9 @@ class ArxivDepotProvider:
                         hits=[],
                         started_ms=started,
                         error="depot vector index missing and fts fallback failed",
+                        fault_kind="unconfigured",
+                        user_message="Paper depot has nothing searchable yet.",
+                        what_to_do="Ingest papers into the depot first.",
                     )
         except Exception as e:
             return [], _receipt(
@@ -110,6 +113,9 @@ class ArxivDepotProvider:
                 hits=[],
                 started_ms=started,
                 error=f"arxiv-mcp backend unreachable at {self._base_url}: {e}",
+                fault_kind="down",
+                user_message="arxiv-mcp backend isn't reachable.",
+                what_to_do="Start the arxiv-mcp backend (start.bat); other providers already ran.",
             )
         hits = map_hits(data.get("hits", []))[: max(limit, 1)]
         return hits, _receipt(

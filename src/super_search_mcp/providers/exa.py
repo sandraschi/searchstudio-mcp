@@ -67,6 +67,9 @@ class ExaProvider:
                 started_ms=started,
                 error="Exa not configured (EXA_API_KEY unset). Keyless providers still ran.",
                 configured=False,
+                fault_kind="unconfigured",
+                user_message="No Exa key yet.",
+                what_to_do="Get one at exa.ai and set EXA_API_KEY. The rest keeps working.",
             )
         q = (query or "").strip()
         if not q:
@@ -95,6 +98,9 @@ class ExaProvider:
                 hits=[],
                 started_ms=started,
                 error=f"Exa request failed: {e}",
+                fault_kind="down",
+                user_message="Exa request failed.",
+                what_to_do="Check the key and try again; other providers already ran.",
             )
         hits = map_response(data)[: max(limit, 1)]
         return hits, _receipt(

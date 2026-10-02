@@ -83,7 +83,15 @@ class WikipediaProvider:
                 data = resp.json()
         except Exception as e:
             return [], _receipt(
-                NAME, KIND, ok=False, hits=[], started_ms=started, error=f"request failed: {e}"
+                NAME,
+                KIND,
+                ok=False,
+                hits=[],
+                started_ms=started,
+                error=f"request failed: {e}",
+                fault_kind="down",
+                user_message="Wikipedia isn't reachable right now.",
+                what_to_do="Try again shortly; other providers already ran.",
             )
         hits = map_pages((data.get("query") or {}).get("pages", {}))[: max(limit, 1)]
         return hits, _receipt(NAME, KIND, ok=True, hits=hits, started_ms=started)

@@ -108,21 +108,34 @@ class OpenSerpProvider:
                 hits=[],
                 started_ms=started,
                 error=f"OpenSERP-local request failed: {e}",
+                fault_kind="down",
+                user_message="OpenSERP service isn't reachable.",
+                what_to_do="Start Docker Desktop with the openserp container on :7000.",
             )
         unreachable = (
             "unreachable" in last_error or "ConnectError" in last_error or "Connect" in last_error
         )
-        hint = (
-            " Is Docker Desktop running with the openserp container on :7000?"
-            if unreachable
-            else ""
-        )
+        if unreachable:
+            return [], _receipt(
+                NAME,
+                KIND,
+                ok=False,
+                hits=[],
+                started_ms=started,
+                error=f"OpenSERP-local gave nothing ({last_error}).",
+                fault_kind="down",
+                user_message="OpenSERP isn't reachable - it needs Docker running.",
+                what_to_do="Start Docker there; no key needed. DuckDuckGo still works.",
+            )
         return [], _receipt(
             NAME,
             KIND,
             ok=False,
             hits=[],
             started_ms=started,
-            error=f"OpenSERP-local gave nothing ({last_error}).{hint}",
-            blocked=not unreachable,
+            error=f"OpenSERP-local gave nothing ({last_error}).",
+            blocked=True,
+            fault_kind="blocked",
+            user_message="OpenSERP engines refused or returned nothing.",
+            what_to_do="Check the openserp container logs; other providers already ran.",
         )

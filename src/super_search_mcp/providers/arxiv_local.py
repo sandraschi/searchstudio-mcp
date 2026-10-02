@@ -85,8 +85,39 @@ class ArxivMcpProvider:
                 hits=[],
                 started_ms=started,
                 error=f"arxiv-mcp backend unreachable at {self._base_url}: {e}",
+                fault_kind="down",
+                user_message="arxiv-mcp backend isn't reachable.",
+                what_to_do="Start the arxiv-mcp backend (start.bat); other providers already ran.",
             )
         hits = map_papers(data.get("merged", []))[: max(limit, 1)]
+        backend_errors = data.get("errors") or {}
+        if not hits and backend_errors:
+            # Backend answered but every leg failed (throttle/slowness): report
+            # its own messages instead of a bare empty ok:true.
+            detail = "; ".join(f"{k}: {v}" for k, v in backend_errors.items())
+            keys = " ".join(backend_errors.keys()).lower()
+            if "arxiv_timeout" in keys or "rate" in keys or "429" in detail:
+                fault, retry = "rate_limited", "~5 minutes"
+                todo = "Wait ~5 min; each retry extends the cooldown. Other providers already ran."
+            elif "fanout" in keys:
+                fault, retry = "slow", "~2 minutes"
+                todo = "Wait ~2 min or narrow to fewer servers. Other providers already ran."
+            else:
+                fault, retry = "down", ""
+                todo = "Wait a few minutes and retry; other providers already ran."
+            return [], _receipt(
+                NAME,
+                KIND,
+                ok=False,
+                hits=[],
+                started_ms=started,
+                error=f"arxiv-mcp searched but failed: {detail}",
+                fault_kind=fault,
+                user_message=f"arXiv backend searched but failed: {detail}",
+                what_to_do=todo,
+                retry_in=retry,
+                time_filter_applied=filt in hours_map,
+            )
         return hits, _receipt(
             NAME,
             KIND,

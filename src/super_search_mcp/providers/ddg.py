@@ -110,7 +110,15 @@ class DuckDuckGoProvider:
                 resp = await client.get(url)
         except Exception as e:
             return [], _receipt(
-                NAME, KIND, ok=False, hits=[], started_ms=started, error=f"request failed: {e}"
+                NAME,
+                KIND,
+                ok=False,
+                hits=[],
+                started_ms=started,
+                error=f"request failed: {e}",
+                fault_kind="down",
+                user_message="DuckDuckGo isn't reachable right now.",
+                what_to_do="Try again shortly; other providers already ran.",
             )
         body = resp.text or ""
         if resp.status_code != 200 or any(m in body for m in _BLOCKED_MARKERS):
@@ -122,6 +130,10 @@ class DuckDuckGoProvider:
                 started_ms=started,
                 error=f"HTTP {resp.status_code} or bot challenge page",
                 blocked=True,
+                fault_kind="blocked",
+                user_message="DuckDuckGo showed a bot challenge - they think we're a bot today.",
+                what_to_do="Usually clears within the hour; use other providers meanwhile.",
+                retry_in="~1 hour",
             )
         triples = parse_lite_html(body)
         # Anti-silent-zero: 200 + result markup present but nothing parsed =
@@ -134,6 +146,9 @@ class DuckDuckGoProvider:
                 hits=[],
                 started_ms=started,
                 error="parse miss: result markup present but 0 triples extracted",
+                fault_kind="bug",
+                user_message="DuckDuckGo changed their layout and our parser missed - our bug.",
+                what_to_do="Logged automatically; other providers continued.",
             )
         hits = [
             SearchHit(title=t, url=u, snippet=s, provider=NAME, kind=KIND)

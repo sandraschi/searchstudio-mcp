@@ -32,6 +32,37 @@ def test_ddg_parses_lite_markup() -> None:
     assert parse_lite_html("<html>nothing</html>") == []
 
 
+def test_ddg_parses_live_single_quote_href_first() -> None:
+    # Live lite.duckduckgo.com 2026-10-01: href-before-class, single quotes.
+    link = (
+        '<a rel="nofollow" '
+        '"//duckduckgo.com/l/?uddg=https%3A%2F%2Fwww.hollabrunn.gv.at%2F&rut=abc" '
+        "class='result-link'>Stadtgemeinde Hollabrunn</a>"
+    )
+    link = link.replace('"//duckduckgo', 'href="//duckduckgo')
+    body = link + "<td class='result-snippet'>Offizielle Seite.</td>"
+    out = parse_lite_html(body)
+    assert out == [
+        (
+            "Stadtgemeinde Hollabrunn",
+            "https://www.hollabrunn.gv.at/",
+            "Offizielle Seite.",
+        )
+    ]
+
+
+def test_ddg_skips_more_info_boilerplate() -> None:
+    body = (
+        '<a rel="nofollow" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fa.test%2F" '
+        "class='result-link'>A Title</a>"
+        "<td class='result-snippet'>A snippet.</td>"
+        '<a rel="nofollow" href="https://duckduckgo.com/help-pages/" '
+        'rel="nofollow" class="result-link">more info</a>'
+    )
+    out = parse_lite_html(body)
+    assert out == [("A Title", "https://a.test/", "A snippet.")]
+
+
 def test_wikipedia_maps_pages() -> None:
     pages = {
         "1": {

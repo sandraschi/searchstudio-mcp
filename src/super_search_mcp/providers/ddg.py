@@ -17,8 +17,12 @@ from .base import _client, _now_ms, _receipt
 NAME = "duckduckgo"
 KIND = "serp"
 
-_LINK_RE = re.compile(r'<a[^>]*class="result-link"[^>]*href="([^"]+)"[^>]*>(.*?)</a>', re.S)
-_SNIPPET_RE = re.compile(r'<td[^>]*class="result-snippet"[^>]*>(.*?)</td>', re.S)
+_ANCHOR_RE = re.compile(r"<a\s[^>]*?>(.*?)</a>", re.S | re.I)
+_HREF_RE = re.compile(r"href\s*=\s*[\"']([^\"']+)[\"']", re.I)
+_CLASS_RE = re.compile(r"class\s*=\s*[\"']([^\"']*)[\"']", re.I)
+_SNIPPET_RE = re.compile(
+    r"<td[^>]*class\s*=\s*[\"']result-snippet[\"'][^>]*>(.*?)</td>", re.S | re.I
+)
 _TAG_RE = re.compile(r"<[^>]+>")
 _BLOCKED_MARKERS = ("anomaly-modal", "challenge-form", "not a robot")
 
@@ -43,15 +47,37 @@ def _real_url(href: str) -> str:
 
 
 def parse_lite_html(body: str) -> list[tuple[str, str, str]]:
-    """Parse lite DDG markup into (title, url, snippet) triples. Pure function (tested)."""
-    links = [(m.group(1), _clean(m.group(2))) for m in _LINK_RE.finditer(body or "")]
-    snippets = [_clean(m.group(1)) for m in _SNIPPET_RE.finditer(body or "")]
-    out = []
-    for i, (href, title) in enumerate(links):
-        url = _real_url(href)
+    """Parse lite DDG markup into (title, url, snippet) triples. Pure function (tested).
+
+    Tolerant to DDG markup drift: single or double quotes, href/class in any
+    order (verified 2026-10-01 live HTML uses ``class='result-link'`` with
+    href-before-class). Sponsored ``more info`` boilerplate links are skipped.
+    """
+    if not body:
+        return []
+    snippets = [_clean(m.group(1)) for m in _SNIPPET_RE.finditer(body)]
+    out: list[tuple[str, str, str]] = []
+    snippet_idx = 0
+    for anchor in _ANCHOR_RE.finditer(body):
+        tag = anchor.group(0)
+        inner = anchor.group(1)
+        cls = _CLASS_RE.search(tag)
+        if not cls or "result-link" not in cls.group(1).split():
+            continue
+        href_m = _HREF_RE.search(tag)
+        if not href_m:
+            continue
+        title = _clean(inner)
+        if not title or title.lower() == "more info":
+            continue
+        url = _real_url(href_m.group(1))
         if not url or not title:
             continue
-        out.append((title, url, snippets[i] if i < len(snippets) else ""))
+        snippet = snippets[snippet_idx] if snippet_idx < len(snippets) else ""
+        # Snippets list includes sponsored rows too, so advance in lockstep
+        # with result-link order (sponsored + organic share the same markup).
+        snippet_idx += 1
+        out.append((title, url, snippet))
     return out
 
 
@@ -97,8 +123,20 @@ class DuckDuckGoProvider:
                 error=f"HTTP {resp.status_code} or bot challenge page",
                 blocked=True,
             )
+        triples = parse_lite_html(body)
+        # Anti-silent-zero: 200 + result markup present but nothing parsed =
+        # parser drift, not "no results". Report as failure so health drops.
+        if not triples and ("result-link" in body or "result-snippet" in body):
+            return [], _receipt(
+                NAME,
+                KIND,
+                ok=False,
+                hits=[],
+                started_ms=started,
+                error="parse miss: result markup present but 0 triples extracted",
+            )
         hits = [
             SearchHit(title=t, url=u, snippet=s, provider=NAME, kind=KIND)
-            for t, u, s in parse_lite_html(body)[: max(limit, 1)]
+            for t, u, s in triples[: max(limit, 1)]
         ]
         return hits, _receipt(NAME, KIND, ok=True, hits=hits, started_ms=started)

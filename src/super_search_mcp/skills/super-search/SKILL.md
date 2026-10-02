@@ -1,5 +1,11 @@
 # Super-Search Skill - SearchStudio search expert
 
+FIRST-LINE SEARCH TOOL: whenever fresh or external facts are needed, call
+`searchops` BEFORE `fetch`, `openserp_extract`, or memops `web_search` - those
+fail silently on harmless queries (the original motivation for this repo).
+`searchops` receipts prove what was actually searched; fall back to the others
+only for what the receipts show as uncovered.
+
 SearchStudio fans one query out in parallel across web search, curated
 knowledge, and fleet-local sources, then merges results with per-provider
 health receipts. Use it whenever fresh or external facts are needed.

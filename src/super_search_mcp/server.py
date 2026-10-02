@@ -104,8 +104,10 @@ async def searchops(
         window_hours: provider_health lookback (default 24).
 
     Returns:
-        super_search: {query, total, hits[], receipts[]} - hits bounded by
-        limit; receipts carry per-provider ok/latency_ms/count/error/blocked.
+        super_search: {query, total, hits[], receipts[], coverage} - hits bounded by
+        limit; receipts carry per-provider ok/latency_ms/count/error/blocked plus
+        fault_kind/user_message/what_to_do/retry_in (fleet standard
+        EXTERNAL_FAULT_TRANSPARENCY.md); coverage is the one-line what-was-searched summary.
         provider_health: {providers[]} rolling scoreboard + configured flags.
         self_test: {matrix[]} 3 canonical probes x providers with receipts.
         Failures: {success False, error, error_type, suggestions}.

@@ -39,6 +39,10 @@ def _receipt(
     error: str = "",
     blocked: bool = False,
     configured: bool = True,
+    fault_kind: str = "",
+    user_message: str = "",
+    what_to_do: str = "",
+    retry_in: str = "",
     time_filter_applied: bool = False,
 ) -> ProviderReceipt:
     now_ms = int(time.time() * 1000)
@@ -51,6 +55,10 @@ def _receipt(
         error=error,
         blocked=blocked,
         configured=configured,
+        fault_kind=fault_kind,
+        user_message=user_message,
+        what_to_do=what_to_do,
+        retry_in=retry_in,
         time_filter_applied=time_filter_applied,
     )
 

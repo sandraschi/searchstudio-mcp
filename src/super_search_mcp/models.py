@@ -11,6 +11,11 @@ from typing import Literal
 
 ProviderKind = Literal["serp", "knowledge", "fleet-local"]
 
+# External-fault taxonomy (fleet standard EXTERNAL_FAULT_TRANSPARENCY.md).
+# Every failed receipt names exactly one kind so agents can branch
+# (retry / narrow / skip / escalate) and users get "whose fault + what next".
+FaultKind = Literal["", "rate_limited", "slow", "blocked", "down", "unconfigured", "bug"]
+
 # time_filter values accepted everywhere. "any" disables filtering.
 TIME_FILTERS = ("any", "day", "week", "month", "year")
 
@@ -43,6 +48,10 @@ class ProviderReceipt:
     error: str = ""
     blocked: bool = False  # engine refused us (rate limit/captcha/IP), not a bug
     configured: bool = True  # False = declared stub (missing key/service)
+    fault_kind: str = ""  # FaultKind: machine-readable failure class for agents
+    user_message: str = ""  # human words: whose fault, in plain language
+    what_to_do: str = ""  # concrete next step a non-technical user can take
+    retry_in: str = ""  # honest wait estimate ("~5 minutes"), "" when unknown
     time_filter_applied: bool = False  # True = the requested freshness filter
     # was actually transmitted to the provider. False with time_filter != any
     # means "ran unfiltered, said so" - never silent.
@@ -58,6 +67,7 @@ class FanoutResult:
     query: str
     hits: list[SearchHit] = field(default_factory=list)
     receipts: list[ProviderReceipt] = field(default_factory=list)
+    coverage: str = ""  # one honest line: what was searched, what failed why
 
     def to_dict(self) -> dict:
         return {
@@ -65,6 +75,7 @@ class FanoutResult:
             "total": len(self.hits),
             "hits": [h.to_dict() for h in self.hits],
             "receipts": [r.to_dict() for r in self.receipts],
+            "coverage": self.coverage,
         }
 
 

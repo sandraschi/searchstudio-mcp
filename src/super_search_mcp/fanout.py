@@ -14,6 +14,35 @@ from .db import health_summary, record_attempt
 from .models import FanoutResult, ProviderReceipt, SearchHit, normalize_url
 
 KIND_PRIORITY = ("fleet-local", "knowledge", "serp")
+KIND_LABEL = {"fleet-local": "Fleet-local", "knowledge": "Knowledge", "serp": "Web"}
+
+
+def _short(r: ProviderReceipt) -> str:
+    """Compact per-provider status: 'name ok(n)' or 'name fault_kind'."""
+    if r.ok:
+        return f"{r.provider} ok({r.count})"
+    return f"{r.provider} {r.fault_kind or 'failed'}"
+
+
+def build_coverage(receipts: list[ProviderReceipt]) -> str:
+    """One honest line: what was searched, what failed and why. Pure (tested).
+
+    Example: "Fleet-local: arxiv-mcp ok(3), arxiv-depot ok(0). Knowledge:
+    wikipedia ok(5). Web: duckduckgo ok(10); openserp-local down; tavily
+    unconfigured." Absence of this line is itself a defect (standard
+    EXTERNAL_FAULT_TRANSPARENCY.md).
+    """
+    by_kind: dict[str, list[ProviderReceipt]] = {}
+    for r in receipts or []:
+        by_kind.setdefault(r.kind or "?", []).append(r)
+    groups: list[str] = []
+    for kind in KIND_PRIORITY:
+        parts = [_short(r) for r in by_kind.pop(kind, [])]
+        if parts:
+            groups.append(f"{KIND_LABEL[kind]}: {', '.join(parts)}")
+    for kind, rest in by_kind.items():  # unknown kinds last, never dropped
+        groups.append(f"{kind}: {', '.join(_short(r) for r in rest)}")
+    return ". ".join(groups) + ("." if groups else "")
 
 
 def merge_hits(per_provider: list[tuple[str, list[SearchHit]]]) -> list[SearchHit]:
@@ -54,7 +83,11 @@ async def fanout(
     filt = time_filter if time_filter in TIME_FILTERS else "any"
     selected = [p for p in providers if p.kind in kinds and (not only or p.name in only)]
     if not selected:
-        return FanoutResult(query=query)
+        return FanoutResult(
+            query=query,
+            coverage="No providers selected (check kinds/providers filters) - "
+            "nothing was searched.",
+        )
 
     async def run(p) -> tuple[str, list[SearchHit], ProviderReceipt]:
         try:
@@ -69,6 +102,9 @@ async def fanout(
                     kind=getattr(p, "kind", "?"),
                     ok=False,
                     error=f"provider crashed: {e}",
+                    fault_kind="bug",
+                    user_message=f"{p.name} crashed - our bug, not your query.",
+                    what_to_do="Reported in logs; other providers continued.",
                 ),
             )
 
@@ -87,7 +123,9 @@ async def fanout(
                 blocked=r.blocked,
             )
     merged = merge_hits(per_provider)[: max(limit, 1)]
-    return FanoutResult(query=query, hits=merged, receipts=receipts)
+    return FanoutResult(
+        query=query, hits=merged, receipts=receipts, coverage=build_coverage(receipts)
+    )
 
 
 def health(db_path, window_hours: int = 24) -> list[dict]:

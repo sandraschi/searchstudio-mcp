@@ -15,8 +15,12 @@ Parallel fan-out, merged hits, per-provider receipts.
 | `limit` | int | `10` | 1..50 merged hits |
 | `mode` | `balanced` \| `any` | `balanced` | `any` = fastest kind with hits wins (receipts still full) |
 
-Returns `{success, query, total, hits[], receipts[]}` (`mode_winner_kind` in `any` mode).
+Returns `{success, query, total, hits[], receipts[], coverage}` (`mode_winner_kind` in `any` mode).
 Failure: `{success: False, error, error_type, suggestions}`.
+Receipts carry `fault_kind` (`rate_limited|slow|blocked|down|unconfigured|bug`),
+`user_message`, `what_to_do`, `retry_in` alongside the technical `error`;
+`coverage` is the one-line what-was-searched summary (fleet standard
+EXTERNAL_FAULT_TRANSPARENCY.md).
 
 ## searchops(operation="provider_health", window_hours=24)
 

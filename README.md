@@ -47,7 +47,7 @@ AI-native search API ([tavily.com](https://tavily.com)) built for LLM agents: ra
 
 ### Exa
 
-Neural search API ([exa.ai](https://exa.ai)) that finds by meaning, not just keywords. Phase 2 provider - same interface, needs a key when it lands.
+Neural search API ([exa.ai](https://exa.ai)) that finds by meaning, not just keywords. Live provider - needs an `EXA_API_KEY`; without one it reports as unconfigured stub, never silent.
 
 ### Brave
 

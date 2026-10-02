@@ -80,6 +80,10 @@ async def searchops(
 ) -> dict:
     """Parallel multi-provider search with health receipts (SearchStudio).
 
+    ALSO KNOWN AS "super search" / super_search: when the user says
+    "super search ...", "super_search ...", or "searchops ...", call this
+    tool with operation="super_search" and the rest as query.
+
     Fans out across fleet-local knowledge (arxiv-mcp), curated sources
     (Wikipedia), and web search (OpenSERP-local, DuckDuckGo, Tavily) in
     parallel, merges by kind priority (local first), and reports one receipt

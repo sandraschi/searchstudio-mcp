@@ -91,20 +91,35 @@ class ArxivMcpProvider:
             )
         hits = map_papers(data.get("merged", []))[: max(limit, 1)]
         backend_errors = data.get("errors") or {}
-        if not hits and backend_errors:
+        if not hits and (backend_errors or data.get("faults")):
             # Backend answered but every leg failed (throttle/slowness): report
-            # its own messages instead of a bare empty ok:true.
+            # its own messages instead of a bare empty ok:true. Prefer the
+            # structured faults envelope; fall back to keyword mapping.
             detail = "; ".join(f"{k}: {v}" for k, v in backend_errors.items())
-            keys = " ".join(backend_errors.keys()).lower()
-            if "arxiv_timeout" in keys or "rate" in keys or "429" in detail:
-                fault, retry = "rate_limited", "~5 minutes"
-                todo = "Wait ~5 min; each retry extends the cooldown. Other providers already ran."
-            elif "fanout" in keys:
-                fault, retry = "slow", "~2 minutes"
-                todo = "Wait ~2 min or narrow to fewer servers. Other providers already ran."
+            faults = [f for f in (data.get("faults") or []) if isinstance(f, dict)]
+            if faults:
+                first = faults[0]
+                fault = str(first.get("kind") or "down")
+                retry = str(first.get("retry_in") or "")
+                todo = str(
+                    first.get("what_to_do")
+                    or "Wait a few minutes and retry; other providers already ran."
+                )
+                user_msg = str(
+                    first.get("user_message") or f"arXiv backend searched but failed: {detail}"
+                )
             else:
-                fault, retry = "down", ""
-                todo = "Wait a few minutes and retry; other providers already ran."
+                keys = " ".join(backend_errors.keys()).lower()
+                if "arxiv_timeout" in keys or "rate" in keys or "429" in detail:
+                    fault, retry = "rate_limited", "~5 minutes"
+                    todo = "Wait ~5 min; each retry extends the cooldown. Other providers ran."
+                elif "fanout" in keys:
+                    fault, retry = "slow", "~2 minutes"
+                    todo = "Wait ~2 min or narrow to fewer servers. Other providers ran."
+                else:
+                    fault, retry = "down", ""
+                    todo = "Wait a few minutes and retry; other providers already ran."
+                user_msg = f"arXiv backend searched but failed: {detail}"
             return [], _receipt(
                 NAME,
                 KIND,
@@ -113,7 +128,7 @@ class ArxivMcpProvider:
                 started_ms=started,
                 error=f"arxiv-mcp searched but failed: {detail}",
                 fault_kind=fault,
-                user_message=f"arXiv backend searched but failed: {detail}",
+                user_message=user_msg,
                 what_to_do=todo,
                 retry_in=retry,
                 time_filter_applied=filt in hours_map,

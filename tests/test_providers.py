@@ -131,6 +131,55 @@ async def test_arxiv_surfaces_backend_errors() -> None:
     assert "Wait" in receipt.what_to_do
 
 
+async def test_arxiv_prefers_structured_faults() -> None:
+    from super_search_mcp.providers import arxiv_local
+    from super_search_mcp.providers.arxiv_local import ArxivMcpProvider
+
+    class _Resp:
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self) -> dict:
+            return {
+                "merged": [],
+                "errors": {"arxiv_timeout": "backend words"},
+                "faults": [
+                    {
+                        "service": "arXiv API",
+                        "kind": "rate_limited",
+                        "our_fault": False,
+                        "retry_in": "~5 minutes",
+                        "user_message": "structured words",
+                        "what_to_do": "structured todo",
+                    }
+                ],
+            }
+
+    class _Client:
+        def __init__(self, *a: object, **k: object) -> None:
+            return None
+
+        async def __aenter__(self) -> "_Client":
+            return self
+
+        async def __aexit__(self, *a: object) -> bool:
+            return False
+
+        async def get(self, url: str) -> _Resp:
+            return _Resp()
+
+    real = arxiv_local._client
+    arxiv_local._client = _Client  # type: ignore[assignment]
+    try:
+        hits, receipt = await ArxivMcpProvider("http://127.0.0.1:1").search("x")
+    finally:
+        arxiv_local._client = real
+    assert hits == [] and receipt.ok is False
+    assert receipt.fault_kind == "rate_limited"
+    assert receipt.user_message == "structured words"
+    assert receipt.what_to_do == "structured todo"
+
+
 def test_coverage_line_summarizes_mixed_outcomes() -> None:
     from super_search_mcp.fanout import build_coverage
     from super_search_mcp.models import ProviderReceipt

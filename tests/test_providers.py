@@ -92,6 +92,101 @@ def test_arxiv_maps_merged() -> None:
     assert len(out) == 1 and out[0].url.endswith("/abs/1706.03762")
 
 
+async def test_arxiv_surfaces_backend_errors() -> None:
+    from super_search_mcp.providers import arxiv_local
+    from super_search_mcp.providers.arxiv_local import ArxivMcpProvider
+
+    class _Resp:
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self) -> dict:
+            return {
+                "merged": [],
+                "errors": {"arxiv_timeout": "arXiv API exceeded 10s; retry shortly"},
+            }
+
+    class _Client:
+        def __init__(self, *a: object, **k: object) -> None:
+            return None
+
+        async def __aenter__(self) -> "_Client":
+            return self
+
+        async def __aexit__(self, *a: object) -> bool:
+            return False
+
+        async def get(self, url: str) -> _Resp:
+            return _Resp()
+
+    real = arxiv_local._client
+    arxiv_local._client = _Client  # type: ignore[assignment]
+    try:
+        hits, receipt = await ArxivMcpProvider("http://127.0.0.1:1").search("x")
+    finally:
+        arxiv_local._client = real
+    assert hits == [] and receipt.ok is False and "arxiv_timeout" in receipt.error
+    assert receipt.fault_kind == "rate_limited"
+    assert receipt.retry_in == "~5 minutes"
+    assert "Wait" in receipt.what_to_do
+
+
+def test_coverage_line_summarizes_mixed_outcomes() -> None:
+    from super_search_mcp.fanout import build_coverage
+    from super_search_mcp.models import ProviderReceipt
+
+    receipts = [
+        ProviderReceipt(provider="arxiv-mcp", kind="fleet-local", ok=True, count=3),
+        ProviderReceipt(provider="arxiv-depot", kind="fleet-local", ok=True, count=0),
+        ProviderReceipt(provider="wikipedia", kind="knowledge", ok=True, count=5),
+        ProviderReceipt(provider="duckduckgo", kind="serp", ok=True, count=10),
+        ProviderReceipt(
+            provider="openserp-local",
+            kind="serp",
+            ok=False,
+            fault_kind="down",
+            error="ConnectError",
+        ),
+        ProviderReceipt(
+            provider="tavily",
+            kind="serp",
+            ok=False,
+            configured=False,
+            fault_kind="unconfigured",
+        ),
+    ]
+    line = build_coverage(receipts)
+    assert "Fleet-local: arxiv-mcp ok(3), arxiv-depot ok(0)" in line
+    assert "Knowledge: wikipedia ok(5)" in line
+    assert "duckduckgo ok(10)" in line
+    assert "openserp-local down" in line
+    assert "tavily unconfigured" in line
+
+
+async def test_crash_receipt_is_bug_kind() -> None:
+    from super_search_mcp import fanout
+
+    class _Boom:
+        name = "boom"
+        kind = "serp"
+
+        async def search(self, query: str, limit: int = 10, time_filter: str = "any"):
+            raise RuntimeError("kaput")
+
+    res = await fanout.fanout([_Boom()], "q", limit=5)
+    assert res.hits == [] and len(res.receipts) == 1
+    r = res.receipts[0]
+    assert r.ok is False and r.fault_kind == "bug"
+    assert "boom" in res.coverage and "bug" in res.coverage
+
+
+async def test_empty_selection_coverage_says_nothing_searched() -> None:
+    from super_search_mcp import fanout
+
+    res = await fanout.fanout([], "q")
+    assert res.coverage.startswith("No providers selected")
+
+
 def test_openserp_defensive_mapping() -> None:
     rows = [
         {"title": "T", "url": "https://u.test", "snippet": "s"},

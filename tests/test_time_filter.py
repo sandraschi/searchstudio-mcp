@@ -95,7 +95,9 @@ async def test_openserp_appends_after_operator(monkeypatch) -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         assert "after" in str(request.url)
         return _json_response(
-            {"results": [{"title": "T", "url": "https://t.test", "snippet": "s"}]}
+            # The hit mentions the query: unrelated hits are rejected by the
+            # relevance check (relevance.py), which is not under test here.
+            {"results": [{"title": "Latest news", "url": "https://t.test", "snippet": "s"}]}
         )
 
     monkeypatch.setattr(openserp, "_client", _client_with(handler, calls))

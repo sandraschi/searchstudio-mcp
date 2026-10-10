@@ -1,9 +1,11 @@
 """Fan-out engine: parallel providers, kind-priority merge, receipts.
 
-Ordering philosophy: fleet-local first (private, free, instant), then
-curated knowledge, then the whole web (broad, billed, flaky). Phase 1 uses
-this static kind order; the health ledger (db.py) already records per-call
-outcomes so Phase 2 can switch to adaptive ordering without schema changes.
+Ordering philosophy: relevance first, then fleet-local (private, free,
+instant), curated knowledge, and the whole web (broad, billed, flaky). Hits
+are ranked by a cheap literal relevance score (relevance.py); kind order breaks
+ties. Providers whose every hit is unrelated to the query are reported as
+fault kind "unrelated" and their hits are dropped (2026-10-11: soft-blocked
+Bing and a broken upstream search topped results with junk while ok).
 """
 
 from __future__ import annotations
@@ -12,6 +14,7 @@ import asyncio
 
 from .db import health_summary, record_attempt
 from .models import FanoutResult, ProviderReceipt, SearchHit, normalize_url
+from .relevance import SEMANTIC_PROVIDERS, hit_score, provider_passes, query_terms
 
 KIND_PRIORITY = ("fleet-local", "knowledge", "serp")
 KIND_LABEL = {"fleet-local": "Fleet-local", "knowledge": "Knowledge", "serp": "Web"}
@@ -46,17 +49,30 @@ def build_coverage(receipts: list[ProviderReceipt]) -> str:
     return ". ".join(groups) + ("." if groups else "")
 
 
-def merge_hits(per_provider: list[tuple[str, list[SearchHit]]]) -> list[SearchHit]:
-    """Interleave by kind priority, dedupe by normalized URL. Pure (tested)."""
+def merge_hits(per_provider: list[tuple[str, list[SearchHit]]], query: str = "") -> list[SearchHit]:
+    """Rank by relevance, then kind priority; dedupe by normalized URL. Pure (tested).
+
+    Without a query (or with only stopwords) every score is equal and the
+    order is plain kind priority. Hits from semantic providers count as at
+    least "related", since they need not share words with the query.
+    """
     buckets: dict[str, list[SearchHit]] = {}
     for provider_name, hits in per_provider:
         for h in hits:
             buckets.setdefault(h.kind or "serp", []).append(h)
-    ordered: list[SearchHit] = []
+    by_kind: list[SearchHit] = []
     for kind in KIND_PRIORITY:
-        ordered.extend(buckets.pop(kind, []))
+        by_kind.extend(buckets.pop(kind, []))
     for rest in buckets.values():  # unknown kinds last, never dropped
-        ordered.extend(rest)
+        by_kind.extend(rest)
+    terms = query_terms(query)
+
+    def score(h: SearchHit) -> int:
+        s = hit_score(terms, h)
+        return max(s, 1) if h.provider in SEMANTIC_PROVIDERS else s
+
+    # sorted() is stable: equal scores keep the kind-priority order above.
+    ordered = sorted(by_kind, key=lambda h: -score(h)) if terms else by_kind
     seen: set[str] = set()
     merged: list[SearchHit] = []
     for h in ordered:
@@ -66,6 +82,29 @@ def merge_hits(per_provider: list[tuple[str, list[SearchHit]]]) -> list[SearchHi
         seen.add(key)
         merged.append(h)
     return merged
+
+
+def _check_relevance(
+    query: str, name: str, hits: list[SearchHit], receipt: ProviderReceipt
+) -> tuple[str, list[SearchHit], ProviderReceipt]:
+    """Turn an ok receipt whose hits are all unrelated into fault kind "unrelated".
+
+    The hits are dropped so junk never reaches the merged list; the receipt
+    keeps count = what the provider returned, so the numbers stay honest.
+    """
+    if not receipt.ok or not hits or name in SEMANTIC_PROVIDERS:
+        return name, hits, receipt
+    if provider_passes(query, hits):
+        return name, hits, receipt
+    receipt.ok = False
+    receipt.fault_kind = "unrelated"
+    receipt.error = f"relevance check: none of {len(hits)} hits mention the query"
+    receipt.user_message = (
+        f"{name} answered with results unrelated to your query - ignored "
+        "(likely a soft block or an upstream search problem, not your query)."
+    )
+    receipt.what_to_do = "Nothing to do; results from the other providers are shown."
+    return name, [], receipt
 
 
 async def fanout(
@@ -110,6 +149,7 @@ async def fanout(
             )
 
     settled = await asyncio.gather(*[run(p) for p in selected])
+    settled = [_check_relevance(query, name, hits, r) for name, hits, r in settled]
     per_provider = [(name, hits) for name, hits, _ in settled]
     receipts = [r for _, _, r in settled]
     if db_path is not None:
@@ -123,7 +163,7 @@ async def fanout(
                 count=r.count,
                 blocked=r.blocked,
             )
-    merged = merge_hits(per_provider)[: max(limit, 1)]
+    merged = merge_hits(per_provider, query)[: max(limit, 1)]
     return FanoutResult(
         query=query, hits=merged, receipts=receipts, coverage=build_coverage(receipts)
     )

@@ -14,7 +14,9 @@ ProviderKind = Literal["serp", "knowledge", "fleet-local"]
 # External-fault taxonomy (fleet standard EXTERNAL_FAULT_TRANSPARENCY.md).
 # Every failed receipt names exactly one kind so agents can branch
 # (retry / narrow / skip / escalate) and users get "whose fault + what next".
-FaultKind = Literal["", "rate_limited", "slow", "blocked", "down", "unconfigured", "bug"]
+FaultKind = Literal[
+    "", "rate_limited", "slow", "blocked", "unrelated", "down", "unconfigured", "bug"
+]
 
 # time_filter values accepted everywhere. "any" disables filtering.
 TIME_FILTERS = ("any", "day", "week", "month", "year")

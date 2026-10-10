@@ -17,8 +17,12 @@ Parallel fan-out, merged hits, per-provider receipts.
 
 Returns `{success, query, total, hits[], receipts[], coverage}` (`mode_winner_kind` in `any` mode).
 Failure: `{success: False, error, error_type, suggestions}`.
-Receipts carry `fault_kind` (`rate_limited|slow|blocked|down|unconfigured|bug`),
+Receipts carry `fault_kind` (`rate_limited|slow|blocked|unrelated|down|unconfigured|bug`),
 `user_message`, `what_to_do`, `retry_in` alongside the technical `error`.
+`unrelated` = the provider answered, but not one hit mentions the query (a soft
+block or a broken upstream search); its hits are dropped and `count` still shows
+what it returned. Meaning-based providers (Exa, arXiv library) are exempt.
+Merged hits are ranked by a literal relevance score first, kind order second.
 `via` names the fallback route when one answered (empty = direct): DuckDuckGo
 falls back to a Camoufox render through browser-mcp (`BROWSER_MCP_URL`, empty
 disables) only after a bot challenge, and then reports `ok: true, blocked: true,

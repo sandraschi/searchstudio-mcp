@@ -2,8 +2,10 @@
 
 Talks to the self-hosted OpenSERP service (default http://127.0.0.1:7000).
 Engines are tried in order, first success wins (mode=any *inside* the
-provider). A dead local service is the classic fleet failure - it returns an
-error receipt naming Docker explicitly, never a silent zero.
+provider). An engine whose hits are all unrelated to the query (a soft block,
+see relevance.py) does not count as success: the next engine is tried. A
+dead local service is the classic fleet failure - it returns an error
+receipt naming Docker explicitly, never a silent zero.
 
 Freshness: OpenSERP has no date parameter, so time_filter appends an
 ``after:YYYY-MM-DD`` operator (computed from the real clock) to the query
@@ -18,6 +20,7 @@ import urllib.parse as _parse
 from datetime import UTC, datetime, timedelta
 
 from ..models import SearchHit
+from ..relevance import provider_passes
 from .base import _client, _now_ms, _receipt
 
 NAME = "openserp-local"
@@ -78,6 +81,7 @@ class OpenSerpProvider:
             applied = True
         params = _parse.urlencode({"text": q, "limit": str(min(max(limit, 1), 20))})
         last_error = "no engines configured"
+        unrelated: list[str] = []  # engines that answered with junk
         try:
             async with _client(self._timeout_s) as client:
                 for engine in self._engines:
@@ -90,6 +94,12 @@ class OpenSerpProvider:
                         continue
                     results = data.get("results", data if isinstance(data, list) else [])
                     hits = map_results(results)[: max(limit, 1)]
+                    if hits and not provider_passes(query, hits):
+                        # Soft block: confident junk instead of a refusal
+                        # (Bing, 2026-10-11). Try the next engine.
+                        unrelated.append(engine)
+                        last_error = f"{engine}: results unrelated to the query"
+                        continue
                     if hits:
                         return hits, _receipt(
                             NAME,
@@ -126,6 +136,21 @@ class OpenSerpProvider:
                 fault_kind="down",
                 user_message="OpenSERP isn't reachable - it needs Docker running.",
                 what_to_do="Start Docker there; no key needed. DuckDuckGo still works.",
+            )
+        if unrelated:
+            return [], _receipt(
+                NAME,
+                KIND,
+                ok=False,
+                hits=[],
+                started_ms=started,
+                error=f"OpenSERP-local gave nothing usable ({last_error}).",
+                fault_kind="unrelated",
+                user_message=(
+                    f"OpenSERP engines ({', '.join(unrelated)}) answered with results "
+                    "unrelated to your query - likely soft blocks. Ignored."
+                ),
+                what_to_do="Nothing to do; results from the other providers are shown.",
             )
         return [], _receipt(
             NAME,

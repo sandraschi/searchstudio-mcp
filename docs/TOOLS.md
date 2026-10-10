@@ -18,7 +18,11 @@ Parallel fan-out, merged hits, per-provider receipts.
 Returns `{success, query, total, hits[], receipts[], coverage}` (`mode_winner_kind` in `any` mode).
 Failure: `{success: False, error, error_type, suggestions}`.
 Receipts carry `fault_kind` (`rate_limited|slow|blocked|down|unconfigured|bug`),
-`user_message`, `what_to_do`, `retry_in` alongside the technical `error`;
+`user_message`, `what_to_do`, `retry_in` alongside the technical `error`.
+`via` names the fallback route when one answered (empty = direct): DuckDuckGo
+falls back to a Camoufox render through browser-mcp (`BROWSER_MCP_URL`, empty
+disables) only after a bot challenge, and then reports `ok: true, blocked: true,
+via: "camoufox"`;
 `coverage` is the one-line what-was-searched summary (fleet standard
 EXTERNAL_FAULT_TRANSPARENCY.md).
 

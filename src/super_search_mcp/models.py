@@ -55,6 +55,9 @@ class ProviderReceipt:
     time_filter_applied: bool = False  # True = the requested freshness filter
     # was actually transmitted to the provider. False with time_filter != any
     # means "ran unfiltered, said so" - never silent.
+    via: str = ""  # "" = direct request; otherwise the fallback route that
+    # produced these hits (e.g. "camoufox" after a bot challenge). Always set
+    # when a fallback answered, so a rescued result never looks like a direct one.
 
     def to_dict(self) -> dict:
         return asdict(self)

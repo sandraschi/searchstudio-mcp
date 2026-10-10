@@ -212,6 +212,90 @@ def test_coverage_line_summarizes_mixed_outcomes() -> None:
     assert "tavily unconfigured" in line
 
 
+def test_coverage_line_names_fallback_route() -> None:
+    from super_search_mcp.fanout import build_coverage
+    from super_search_mcp.models import ProviderReceipt
+
+    receipts = [
+        ProviderReceipt(
+            provider="duckduckgo", kind="serp", ok=True, count=3, blocked=True, via="camoufox"
+        )
+    ]
+    assert "duckduckgo ok(3) via camoufox after block" in build_coverage(receipts)
+
+
+_LITE_HIT = (
+    '<a rel="nofollow" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fa.test%2F" '
+    "class='result-link'>A Title</a><td class='result-snippet'>Snip</td>"
+)
+
+
+async def _ddg_blocked_search(post_json: dict | None) -> tuple[list, object]:
+    """DDG search where the direct GET hits a bot challenge; POST = browser-mcp."""
+    from super_search_mcp.providers import ddg
+
+    class _Resp:
+        def __init__(self, status: int, text: str = "", data: dict | None = None) -> None:
+            self.status_code = status
+            self.text = text
+            self._data = data or {}
+
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self) -> dict:
+            return self._data
+
+    class _Client:
+        def __init__(self, *a: object, **k: object) -> None:
+            return None
+
+        async def __aenter__(self) -> "_Client":
+            return self
+
+        async def __aexit__(self, *a: object) -> bool:
+            return False
+
+        async def get(self, url: str) -> _Resp:
+            return _Resp(200, text="<div class='anomaly-modal'>not a robot</div>")
+
+        async def post(self, url: str, json: dict) -> _Resp:
+            if post_json is None:
+                raise AssertionError("fallback must not be called when disabled")
+            assert json["engine"] == "camoufox"
+            return _Resp(200, data=post_json)
+
+    real = ddg._client
+    ddg._client = _Client  # type: ignore[assignment]
+    try:
+        return await ddg.DuckDuckGoProvider().search("x")
+    finally:
+        ddg._client = real
+
+
+async def test_ddg_camoufox_rescue_is_reported_not_hidden(monkeypatch) -> None:
+    monkeypatch.setenv("BROWSER_MCP_URL", "http://127.0.0.1:1")
+    hits, receipt = await _ddg_blocked_search({"success": True, "html": _LITE_HIT})
+    assert len(hits) == 1 and hits[0].url == "https://a.test/"
+    assert receipt.ok is True and receipt.count == 1
+    assert receipt.blocked is True and receipt.via == "camoufox"
+    assert receipt.fault_kind == "" and "Camoufox" in receipt.user_message
+
+
+async def test_ddg_failed_fallback_keeps_blocked_receipt(monkeypatch) -> None:
+    monkeypatch.setenv("BROWSER_MCP_URL", "http://127.0.0.1:1")
+    hits, receipt = await _ddg_blocked_search({"success": False})
+    assert hits == [] and receipt.ok is False
+    assert receipt.blocked is True and receipt.fault_kind == "blocked"
+    assert receipt.via == ""
+
+
+async def test_ddg_fallback_disabled_by_empty_env(monkeypatch) -> None:
+    monkeypatch.setenv("BROWSER_MCP_URL", "")
+    hits, receipt = await _ddg_blocked_search(None)
+    assert hits == [] and receipt.fault_kind == "blocked" and receipt.via == ""
+
+
 async def test_crash_receipt_is_bug_kind() -> None:
     from super_search_mcp import fanout
 

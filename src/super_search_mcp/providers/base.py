@@ -44,6 +44,7 @@ def _receipt(
     what_to_do: str = "",
     retry_in: str = "",
     time_filter_applied: bool = False,
+    via: str = "",
 ) -> ProviderReceipt:
     now_ms = int(time.time() * 1000)
     return ProviderReceipt(
@@ -60,6 +61,7 @@ def _receipt(
         what_to_do=what_to_do,
         retry_in=retry_in,
         time_filter_applied=time_filter_applied,
+        via=via,
     )
 
 

@@ -3,6 +3,8 @@
 Scrapes lite.duckduckgo.com result pages with defensive regex parsing.
 Markup drifts without notice: parse failures degrade to empty-with-receipt,
 never exceptions. Blocking shows up as anomaly/challenge pages or HTTP 202.
+On the blocked path only, one Camoufox render is attempted via the
+browser-mcp bridge (BROWSER_MCP_URL, empty disables) before reporting blocked.
 """
 
 from __future__ import annotations
@@ -81,6 +83,42 @@ def parse_lite_html(body: str) -> list[tuple[str, str, str]]:
     return out
 
 
+async def _stealth_fallback(ddg_url: str, limit: int, timeout_s: float) -> list[SearchHit]:
+    """Render the DDG lite page in browser-mcp (Camoufox) when httpx is challenged.
+
+    Env: BROWSER_MCP_URL (default http://127.0.0.1:10780, empty disables).
+    Returns [] on any failure so the caller keeps its honest blocked receipt.
+    Only fires on the blocked path - normal queries never pay browser cost.
+    Bounded by the provider's own timeout so the fan-out budget stays
+    max(legs) (EXTERNAL_FAULT_TRANSPARENCY retry rule 3).
+    """
+    import os
+
+    base = os.environ.get("BROWSER_MCP_URL", "http://127.0.0.1:10780").strip().rstrip("/")
+    if not base:
+        return []
+    try:
+        async with _client(timeout_s) as client:
+            resp = await client.post(
+                f"{base}/api/fetch",
+                json={"url": ddg_url, "engine": "camoufox", "include_html": True},
+            )
+            resp.raise_for_status()
+            data = resp.json()
+    except Exception:
+        return []
+    if not data.get("success") or not data.get("html"):
+        return []
+    try:
+        triples = parse_lite_html(data["html"])
+    except Exception:
+        return []
+    return [
+        SearchHit(title=t, url=u, snippet=s, provider=NAME, kind=KIND)
+        for t, u, s in triples[: max(limit, 1)]
+    ]
+
+
 class DuckDuckGoProvider:
     name = NAME
     kind = KIND
@@ -122,6 +160,23 @@ class DuckDuckGoProvider:
             )
         body = resp.text or ""
         if resp.status_code != 200 or any(m in body for m in _BLOCKED_MARKERS):
+            stealth_hits = await _stealth_fallback(url, limit=limit, timeout_s=self._timeout_s)
+            if stealth_hits:
+                # Rescued, not direct: keep blocked=True so the health ledger
+                # still counts the block, and say which route answered.
+                return stealth_hits, _receipt(
+                    NAME,
+                    KIND,
+                    ok=True,
+                    hits=stealth_hits,
+                    started_ms=started,
+                    blocked=True,
+                    via="camoufox",
+                    user_message=(
+                        "DuckDuckGo blocked direct access; these results came "
+                        "through the Camoufox browser fallback."
+                    ),
+                )
             return [], _receipt(
                 NAME,
                 KIND,

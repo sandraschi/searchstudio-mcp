@@ -20,7 +20,8 @@ KIND_LABEL = {"fleet-local": "Fleet-local", "knowledge": "Knowledge", "serp": "W
 def _short(r: ProviderReceipt) -> str:
     """Compact per-provider status: 'name ok(n)' or 'name fault_kind'."""
     if r.ok:
-        return f"{r.provider} ok({r.count})"
+        via = f" via {r.via} after block" if r.via else ""
+        return f"{r.provider} ok({r.count}){via}"
     return f"{r.provider} {r.fault_kind or 'failed'}"
 
 

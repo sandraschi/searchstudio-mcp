@@ -11,6 +11,7 @@
         Kind       = 'module-serve'
         Module     = 'super_search_mcp'
         SyncExtras = @('dev')
+        SyncOnStart  = $true
         Env        = @{WEB_PORT = '11226'}
     }
 

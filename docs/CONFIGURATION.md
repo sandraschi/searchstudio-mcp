@@ -12,6 +12,7 @@
 | `SUPER_SEARCH_DATA_DIR` | `data` | SQLite health ledger location |
 | `SUPER_SEARCH_BACKEND_PORT` | `11226` | Backend bind port (`PORT` also honored) |
 | `SUPER_SEARCH_FRONTEND_PORT` | `11225` | Informational (Vite owns its port) |
+| `BROWSER_MCP_URL` | `http://127.0.0.1:10780` | browser-mcp bridge for the Camoufox fallback. Set to empty = fallback hard off (wins over Settings) |
 
 ## Setting Variables
 
@@ -51,3 +52,18 @@ any API - status endpoints report set/unset + source only) and take effect
 immediately: providers resolve keys live on every call. Explicitly set
 process env always wins over the stored file. Clearing removes the stored
 entry (env-set keys are unaffected).
+
+## Browser fallback (Camoufox) switch
+
+When DuckDuckGo answers with a bot challenge, SearchStudio can retry once by
+rendering the page in a Camoufox browser through browser-mcp. This gets around
+the provider's bot check, which the provider may not want, so it is a user
+choice: Settings > "Allow browser fallback (Camoufox)". On by default.
+
+- Stored in the gitignored `data/preferences.json`, read live on every search
+  (no restart). API: `GET/POST /api/settings/fallbacks` (`{"browser_fallback": true|false}`).
+- `BROWSER_MCP_URL` set to empty is an operator hard-off and wins over the
+  checkbox (the Settings page shows it as locked).
+- Every use is visible: a rescued result reports `ok: true, blocked: true,
+  via: "camoufox"`, and the coverage line says `via camoufox after block`. When
+  the fallback is off, the blocked receipt says so and why.

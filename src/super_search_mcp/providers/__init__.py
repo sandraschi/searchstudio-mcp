@@ -29,7 +29,7 @@ def build_providers(settings) -> list:
         ),
         WikipediaProvider(timeout_s=settings.default_timeout_s),
         OpenSerpProvider(base_url=settings.openserp_base_url, timeout_s=settings.default_timeout_s),
-        DuckDuckGoProvider(timeout_s=settings.default_timeout_s),
+        DuckDuckGoProvider(timeout_s=settings.default_timeout_s, data_dir=settings.data_dir),
         TavilyProvider(api_key=tavily_key, timeout_s=settings.default_timeout_s),
         ExaProvider(api_key=exa_key, timeout_s=settings.default_timeout_s),
     ]

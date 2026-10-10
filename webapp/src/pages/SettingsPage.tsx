@@ -212,6 +212,77 @@ function KeyForm() {
   );
 }
 
+interface FallbackStatus {
+  browser_fallback: boolean;
+  source: "env" | "file" | "default";
+}
+
+function FallbackToggle() {
+  const [status, setStatus] = useState<FallbackStatus | null>(null);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    apiGet<FallbackStatus>("/api/settings/fallbacks")
+      .then(setStatus)
+      .catch((e) => setError(String(e)));
+  }, []);
+
+  async function toggle(next: boolean) {
+    setError("");
+    try {
+      const resp = await fetch("/api/settings/fallbacks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ browser_fallback: next }),
+      });
+      const data = (await resp.json()) as FallbackStatus & {
+        success: boolean;
+        error?: string;
+      };
+      if (!data.success) throw new Error(data.error ?? "save failed");
+      setStatus(data);
+    } catch (e) {
+      setError(String(e));
+    }
+  }
+
+  const locked = status?.source === "env";
+  return (
+    <div className="mt-2 space-y-1.5">
+      <label className="flex items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          checked={status?.browser_fallback ?? false}
+          disabled={status === null || locked}
+          onChange={(e) => toggle(e.target.checked)}
+          data-testid="browser-fallback-toggle"
+          className="h-4 w-4 accent-zinc-100"
+        />
+        Allow browser fallback (Camoufox) when a provider blocks us
+      </label>
+      <p className="text-xs text-zinc-400">
+        When DuckDuckGo shows a bot challenge, SearchStudio retries once in a
+        Camoufox browser via browser-mcp. This gets around the provider's bot
+        check, which the provider may not want. Every rescued result is marked
+        "via camoufox after block" in its receipt.
+      </p>
+      <p
+        className="text-xs text-zinc-500"
+        data-testid="browser-fallback-source"
+      >
+        {status === null
+          ? "Loading..."
+          : locked
+            ? "Locked off by the operator (BROWSER_MCP_URL is empty)."
+            : status.source === "file"
+              ? "Your choice, saved on the server."
+              : "Default (on). Uncheck to turn it off."}
+      </p>
+      {error && <p className="text-xs text-red-400">{error}</p>}
+    </div>
+  );
+}
+
 export default function SettingsPage() {
   const [llm, setLlm] = useState({
     available: false as boolean | null,
@@ -252,6 +323,11 @@ export default function SettingsPage() {
           shown back.
         </p>
         <KeyForm />
+      </div>
+
+      <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
+        <p className="text-sm font-medium">Blocked providers</p>
+        <FallbackToggle />
       </div>
 
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">

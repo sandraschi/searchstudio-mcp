@@ -71,6 +71,7 @@ async def capabilities(request):
                 "/api/matrix",
                 "/api/provider-keys",
                 "/api/provider-keys/test",
+                "/api/settings/fallbacks",
             ],
             "provider_kinds": ["fleet-local", "knowledge", "serp"],
         }
@@ -234,6 +235,39 @@ async def api_provider_keys_test(request):
     )
 
 
+def _fallback_status() -> dict:
+    from .config import browser_fallback_allowed
+
+    allowed, source = browser_fallback_allowed(settings.data_dir)
+    return {"success": True, "browser_fallback": allowed, "source": source}
+
+
+async def api_fallbacks(request):
+    """GET: browser fallback (Camoufox) switch + where the value comes from."""
+    return JSONResponse(_fallback_status())
+
+
+async def api_fallbacks_save(request):
+    """POST {browser_fallback: bool}: store the Settings checkbox.
+
+    Env hard-off (BROWSER_MCP_URL empty) still wins; the response reports the
+    effective value so the UI never shows a state that is not in force.
+    """
+    from .config import save_pref
+
+    try:
+        body = await request.json()
+    except Exception:
+        return JSONResponse({"success": False, "error": "invalid JSON body"}, status_code=400)
+    if not isinstance(body, dict):
+        return JSONResponse({"success": False, "error": "expected a JSON object"}, status_code=400)
+    try:
+        save_pref(settings.data_dir, "browser_fallback", body.get("browser_fallback"))
+    except ValueError as e:
+        return JSONResponse({"success": False, "error": str(e)}, status_code=400)
+    return JSONResponse(_fallback_status())
+
+
 def build_app() -> Starlette:
     _mcp_http = mcp.http_app(path="/")
 
@@ -255,6 +289,8 @@ def build_app() -> Starlette:
         Route("/api/provider-keys", api_provider_keys_save, methods=["POST"]),
         Route("/api/provider-keys", api_provider_keys_delete, methods=["DELETE"]),
         Route("/api/provider-keys/test", api_provider_keys_test, methods=["POST"]),
+        Route("/api/settings/fallbacks", api_fallbacks, methods=["GET"]),
+        Route("/api/settings/fallbacks", api_fallbacks_save, methods=["POST"]),
     ]
     app = Starlette(routes=routes, lifespan=_lifespan_all)
     app.mount("/mcp", _mcp_http)

@@ -230,8 +230,11 @@ _LITE_HIT = (
 )
 
 
-async def _ddg_blocked_search(post_json: dict | None) -> tuple[list, object]:
-    """DDG search where the direct GET hits a bot challenge; POST = browser-mcp."""
+async def _ddg_blocked_search(post_json: dict | None, data_dir: str) -> tuple[list, object]:
+    """DDG search where the direct GET hits a bot challenge; POST = browser-mcp.
+
+    data_dir is a per-test temp dir so the real data/preferences.json is never read.
+    """
     from super_search_mcp.providers import ddg
 
     class _Resp:
@@ -268,32 +271,43 @@ async def _ddg_blocked_search(post_json: dict | None) -> tuple[list, object]:
     real = ddg._client
     ddg._client = _Client  # type: ignore[assignment]
     try:
-        return await ddg.DuckDuckGoProvider().search("x")
+        return await ddg.DuckDuckGoProvider(data_dir=data_dir).search("x")
     finally:
         ddg._client = real
 
 
-async def test_ddg_camoufox_rescue_is_reported_not_hidden(monkeypatch) -> None:
+async def test_ddg_camoufox_rescue_is_reported_not_hidden(monkeypatch, tmp_path) -> None:
     monkeypatch.setenv("BROWSER_MCP_URL", "http://127.0.0.1:1")
-    hits, receipt = await _ddg_blocked_search({"success": True, "html": _LITE_HIT})
+    hits, receipt = await _ddg_blocked_search({"success": True, "html": _LITE_HIT}, str(tmp_path))
     assert len(hits) == 1 and hits[0].url == "https://a.test/"
     assert receipt.ok is True and receipt.count == 1
     assert receipt.blocked is True and receipt.via == "camoufox"
     assert receipt.fault_kind == "" and "Camoufox" in receipt.user_message
 
 
-async def test_ddg_failed_fallback_keeps_blocked_receipt(monkeypatch) -> None:
+async def test_ddg_failed_fallback_keeps_blocked_receipt(monkeypatch, tmp_path) -> None:
     monkeypatch.setenv("BROWSER_MCP_URL", "http://127.0.0.1:1")
-    hits, receipt = await _ddg_blocked_search({"success": False})
+    hits, receipt = await _ddg_blocked_search({"success": False}, str(tmp_path))
     assert hits == [] and receipt.ok is False
     assert receipt.blocked is True and receipt.fault_kind == "blocked"
-    assert receipt.via == ""
+    assert receipt.via == "" and "tried and did not help" in receipt.user_message
 
 
-async def test_ddg_fallback_disabled_by_empty_env(monkeypatch) -> None:
+async def test_ddg_fallback_disabled_by_empty_env(monkeypatch, tmp_path) -> None:
     monkeypatch.setenv("BROWSER_MCP_URL", "")
-    hits, receipt = await _ddg_blocked_search(None)
+    hits, receipt = await _ddg_blocked_search(None, str(tmp_path))
     assert hits == [] and receipt.fault_kind == "blocked" and receipt.via == ""
+    assert "BROWSER_MCP_URL is empty" in receipt.user_message
+
+
+async def test_ddg_settings_off_skips_fallback(monkeypatch, tmp_path) -> None:
+    from super_search_mcp.config import save_pref
+
+    monkeypatch.setenv("BROWSER_MCP_URL", "http://127.0.0.1:1")
+    save_pref(str(tmp_path), "browser_fallback", False)
+    hits, receipt = await _ddg_blocked_search(None, str(tmp_path))
+    assert hits == [] and receipt.fault_kind == "blocked"
+    assert "off in Settings" in receipt.user_message
 
 
 async def test_crash_receipt_is_bug_kind() -> None:

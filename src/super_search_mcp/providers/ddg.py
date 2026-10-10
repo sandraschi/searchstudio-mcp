@@ -4,7 +4,8 @@ Scrapes lite.duckduckgo.com result pages with defensive regex parsing.
 Markup drifts without notice: parse failures degrade to empty-with-receipt,
 never exceptions. Blocking shows up as anomaly/challenge pages or HTTP 202.
 On the blocked path only, one Camoufox render is attempted via the
-browser-mcp bridge (BROWSER_MCP_URL, empty disables) before reporting blocked.
+browser-mcp bridge before reporting blocked, unless switched off (Settings
+checkbox, or BROWSER_MCP_URL set to empty as an operator hard-off).
 """
 
 from __future__ import annotations
@@ -13,6 +14,7 @@ import html as _html
 import re
 import urllib.parse as _parse
 
+from ..config import browser_fallback_allowed
 from ..models import SearchHit
 from .base import _client, _now_ms, _receipt
 
@@ -119,12 +121,22 @@ async def _stealth_fallback(ddg_url: str, limit: int, timeout_s: float) -> list[
     ]
 
 
+def _fallback_note(allowed: bool, source: str) -> str:
+    """Why the browser fallback did not rescue a blocked search (receipt text)."""
+    if allowed:
+        return " The browser fallback was tried and did not help."
+    if source == "env":
+        return " Browser fallback is off (BROWSER_MCP_URL is empty)."
+    return " Browser fallback is off in Settings."
+
+
 class DuckDuckGoProvider:
     name = NAME
     kind = KIND
 
-    def __init__(self, timeout_s: float = 20.0):
+    def __init__(self, timeout_s: float = 20.0, data_dir: str = "data"):
         self._timeout_s = timeout_s
+        self._data_dir = data_dir  # where the Settings preferences file lives
 
     @property
     def configured(self) -> bool:
@@ -160,7 +172,12 @@ class DuckDuckGoProvider:
             )
         body = resp.text or ""
         if resp.status_code != 200 or any(m in body for m in _BLOCKED_MARKERS):
-            stealth_hits = await _stealth_fallback(url, limit=limit, timeout_s=self._timeout_s)
+            allowed, source = browser_fallback_allowed(self._data_dir)
+            stealth_hits = (
+                await _stealth_fallback(url, limit=limit, timeout_s=self._timeout_s)
+                if allowed
+                else []
+            )
             if stealth_hits:
                 # Rescued, not direct: keep blocked=True so the health ledger
                 # still counts the block, and say which route answered.
@@ -186,7 +203,8 @@ class DuckDuckGoProvider:
                 error=f"HTTP {resp.status_code} or bot challenge page",
                 blocked=True,
                 fault_kind="blocked",
-                user_message="DuckDuckGo showed a bot challenge - they think we're a bot today.",
+                user_message="DuckDuckGo showed a bot challenge - they think we're a bot today."
+                + _fallback_note(allowed, source),
                 what_to_do="Usually clears within the hour; use other providers meanwhile.",
                 retry_in="~1 hour",
             )

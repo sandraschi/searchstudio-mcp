@@ -70,6 +70,56 @@ def delete_file_key(data_dir: str | Path, name: str) -> bool:
     return True
 
 
+# Non-secret user preferences the Settings page may store. Closed allowlist,
+# boolean values only.
+PREFS_FILE_NAME = "preferences.json"
+MANAGED_PREFS = ("browser_fallback",)
+
+
+def prefs_file_path(data_dir: str | Path) -> Path:
+    return Path(data_dir) / PREFS_FILE_NAME
+
+
+def load_prefs(data_dir: str | Path) -> dict[str, bool]:
+    """Read UI-stored preferences. Corrupt file reads as empty, never crashes."""
+    try:
+        data = json.loads(prefs_file_path(data_dir).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    if not isinstance(data, dict):
+        return {}
+    return {k: v for k, v in data.items() if k in MANAGED_PREFS and isinstance(v, bool)}
+
+
+def save_pref(data_dir: str | Path, name: str, value: object) -> None:
+    """Persist one preference. Raises ValueError on unknown name or non-bool value."""
+    if name not in MANAGED_PREFS:
+        raise ValueError(f"refusing to store unmanaged preference: {name}")
+    if not isinstance(value, bool):
+        raise ValueError(f"{name} must be true or false")
+    path = prefs_file_path(data_dir)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    stored = load_prefs(data_dir)
+    stored[name] = value
+    path.write_text(json.dumps(stored, indent=2), encoding="utf-8")
+
+
+def browser_fallback_allowed(data_dir: str | Path) -> tuple[bool, str]:
+    """May a blocked provider retry through the Camoufox browser fallback?
+
+    Returns (allowed, source). Precedence: BROWSER_MCP_URL explicitly set to
+    empty = hard off for operators ("env"); else the Settings checkbox
+    ("file"); else on ("default"). Live-read on every call, no restart.
+    """
+    env_val = os.environ.get("BROWSER_MCP_URL")
+    if env_val is not None and not env_val.strip():
+        return False, "env"
+    stored = load_prefs(data_dir).get("browser_fallback")
+    if stored is not None:
+        return stored, "file"
+    return True, "default"
+
+
 def resolve_key(settings: Settings, name: str) -> tuple[str, str]:
     """Return (key, source) with env winning over the UI-stored file.
 

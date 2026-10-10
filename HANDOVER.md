@@ -1,5 +1,5 @@
 ---
-updated: 2026-10-11T01:28:03+02:00
+updated: 2026-10-11T01:45:00+02:00
 agent: claude
 status: in-progress
 tags: [searchstudio-mcp, search, research, fastmcp, webapp, handover, high]
@@ -10,14 +10,35 @@ tags: [searchstudio-mcp, search, research, fastmcp, webapp, handover, high]
 ## What's happening right now
 
 Phase 1 engine with 7 providers, fleet-standard fault receipts on every provider
-(EXTERNAL_FAULT_TRANSPARENCY), and now a Camoufox browser fallback for DuckDuckGo
-bot challenges with a Settings switch. Direction is unchanged: **search in every
+(EXTERNAL_FAULT_TRANSPARENCY), a relevance check that catches junk answers (fault
+kind `unrelated`), relevance-ranked merging, and a Camoufox browser fallback for
+DuckDuckGo with a Settings switch. Direction is unchanged: **search in every
 field** (web, places, academic, news, own fleet) with **research workflows** on
 top. Full reasoning and work plan: `docs/ASSESSMENT_2026-09-30.md` (WP0-WP9).
-WP0-WP2 are done; WP3 (README rewrite) is next. Working tree clean, `main` in
-sync with origin.
+WP0-WP3 are done; WP4 is next. Working tree clean, `main` in sync with origin.
 
-## Last concrete action (2026-10-10, Claude)
+## Last concrete action (2026-10-11, Claude)
+
+- Live test of `sitagliptin first clinical trial` exposed **silent junk**: Bing
+  via OpenSERP returned McDonald's menu pages, arxiv-mcp returned unrelated new
+  preprints, both `ok(10)`; the fleet-local-first merge put the junk on top.
+- `cdf8344`: `relevance.py` (cheap literal check, no LLM; EN/DE stopwords,
+  accent folding; `exa` and `arxiv-depot` exempt as meaning-based). Providers
+  with only unrelated hits get fault kind `unrelated` and their hits dropped;
+  merge ranks by relevance, kind order breaks ties; OpenSERP skips an engine
+  that answers with junk. +8 tests from the captured live junk (69 total green).
+  Same live query afterwards: NEJM, TECOS, Januvia sources on top.
+- mcd `36b018df`: `unrelated` added to EXTERNAL_FAULT_TRANSPARENCY. Fleet
+  audit: searchstudio is the only consumer of the fault kinds.
+- arxiv-mcp root cause (raw multi-word query + newest-first sort) filed as a
+  separate task, running in another session; a later live run already showed
+  arxiv-mcp `ok(0)` for the query instead of junk.
+- `878d218`: **WP3 done.** README rewritten (pitch first, real live example,
+  works-today vs planned table, honest install), provider glossary moved to
+  `docs/ONBOARDING.md` (also fixed: keys via Settings need no restart), INSTALL
+  bundle filename. `check-readme-structure.ps1 -Strict` passes.
+
+## Earlier (2026-10-10, Claude)
 
 - Pushed the 5 fault-envelope commits that had sat unpushed since 2026-10-02
   (`d310524`..`9113399`), after testing them in a clean worktree.
@@ -44,11 +65,10 @@ sync with origin.
 
 ## Next step
 
-WP3: README rewrite per assessment 3.4 (vision first, live input-output example,
-status table, glossary to ONBOARDING, working Quick Install). Needs no decisions.
-Mention the Camoufox fallback and its Settings switch honestly in the status
-table. Then WP4 router + places vertical (Starlette-to-FastAPI migration as a
-separate first commit).
+WP3b competitor read (assessment section 7: web-search-plus-mcp and
+open-webSearch, write `docs/COMPETITION.md`), then WP4: router + places vertical,
+with the Starlette-to-FastAPI migration of `backend.py` as a separate first
+commit. Needs no decisions.
 
 ## Blockers
 
@@ -75,6 +95,10 @@ Decided by Sandra (rest still open):
   `via`, keeps `blocked: true` when the direct path was refused, and appears in
   the coverage line. Do not make the Camoufox evasion itself more aggressive
   (fingerprint tuning, retries); it stays one bounded attempt on the blocked path.
+- **Every provider answer goes through the relevance check** (`relevance.py`).
+  A new meaning-based provider (embeddings, neural search) must be added to
+  `SEMANTIC_PROVIDERS`, or its good hits get flagged `unrelated`. New test
+  fixtures need hits that mention their query (see `test_time_filter.py`).
 - Tests that touch DDG must pass a temp `data_dir` to `DuckDuckGoProvider`
   (see `_ddg_blocked_search` in `tests/test_providers.py`), or they read the real
   `data/preferences.json`.

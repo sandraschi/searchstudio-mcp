@@ -1,125 +1,137 @@
 # SearchStudio
 
-**Super search is all you need.** One query fans out in parallel across web search (OpenSERP, DuckDuckGo, Tavily), curated knowledge (Wikipedia), fresh preprint search and your own paper library (arXiv depot) - then merges, dedupes, and shows receipts for which pipes answered and which blocked.
+**Search that tells you when it's failing you.** One query goes to several search
+providers at once - web engines, Wikipedia, your own paper library - and you get the
+merged results plus a receipt for every provider: who answered, who was blocked,
+who returned junk, and how long each took. When a pipe dies, it says so. It never
+quietly hands you nothing, or nonsense, and calls it a result.
 
-[![Status](https://img.shields.io/badge/status-phase%201-blue)]()
+[![Status](https://img.shields.io/badge/status-early%20development-orange)]()
 [![FastMCP](https://img.shields.io/badge/FastMCP-%3E%3D3.4.4-green)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+## Why
+
+Every developer eventually needs search in their projects, and search is the least
+reliable building block there is: engines block automated traffic, serve junk
+instead of an error, or go quiet without notice. And "search" is a wide field. All
+of these are searches:
+
+- "papers about the first sitagliptin trials" (academic)
+- "Indian restaurants in Alsergrund" (places)
+- "what changed in the AMD acquisition this week" (news)
+- "tell me about our robotics repos" (your own stuff)
+
+SearchStudio's goal is one dependable interface for all of them. **Today it covers
+the web, Wikipedia and arXiv preprints well; places, academic databases and your own
+repos are planned** - see [Status](#status).
 
 ## Preview
 
 | Search console | Provider health |
 |---|---|
 | ![Search console](docs/screenshots/search.png) | ![Provider health](docs/screenshots/providers.png) |
-| *One query, three provider kinds, receipts per pipe.* | *Success rate, latency, block rate - the arms race, quantified.* |
+| *One query, several provider kinds, a receipt per provider.* | *Success rate, latency and block rate per provider.* |
+
+## A real example
+
+Live run, 2026-10-11, query `sitagliptin first clinical trial`, top 6 of the merged
+results:
+
+```text
+Coverage: Fleet-local: arxiv-mcp ok(0), arxiv-depot ok(10). Knowledge: wikipedia
+ok(10). Web: openserp-local ok(10), duckduckgo ok(10), tavily unconfigured,
+exa unconfigured.
+
+1. Effect of Sitagliptin on Cardiovascular Outcomes in Type 2 Diabetes   nejm.org
+2. Chapter 7 Case History: JANUVIA (Sitagliptin)                         sciencedirect.com
+3. The Discovery and Development of Sitagliptin Phosphate                benchchem.com
+4. TECOS, Merck's Cardiovascular Safety Trial of JANUVIA (sitagliptin)   merck.com
+5. Discovery of JANUVIA (Sitagliptin), a Selective ... Inhibitor         researchgate.net
+6. (S)-Sitagliptin Phosphate: Initial Preclinical Studies                benchchem.com
+```
+
+The same query minutes earlier, before that night's fixes, is why the receipts
+matter: one web engine answered with McDonald's menu pages and the preprint search
+with unrelated robotics papers, both claiming success. SearchStudio now checks every answer against the query.
+Junk is reported as `unrelated` and dropped, and the merged list is ranked by
+relevance, not by which provider happened to answer.
 
 ## What You Can Do
 
-- Ask once, search everywhere - [web search](#serp), [Wikipedia](#wikipedia), fresh [preprints](#arxiv-preprints) plus your own [paper library](#arxiv-paper-library)
-- See *receipts*: which [providers](#providers-and-targets) answered, which were blocked, how slow each was
-- Keep working when pipes die - dead providers are skipped *and reported*, never silent zeros
-- Run the flakiness matrix on demand - measure the iffiness instead of vibing it
-- Chat with a search-expert skill, 3 personalities + custom prompt, local Ollama first
+- Search the web (OpenSERP, DuckDuckGo, optional Tavily/Exa), Wikipedia and arXiv
+  preprints with one query, in parallel
+- Read the coverage line and receipts: answered, blocked, unrelated, down, or
+  missing a key - every provider, every time
+- Restrict to recent results (day/week/month/year); providers that cannot filter
+  by date say so instead of pretending
+- Keep searching when DuckDuckGo blocks automated traffic: an optional browser
+  fallback (Camoufox) retries once, clearly marked in the receipt, and can be
+  switched off in Settings
+- Check provider health over time and run a quick self-test across all providers
+- Use it from Claude or any MCP client (stdio or HTTP), or from the webapp: search
+  console, provider health, activity, settings (keys, fallback), chat with a local
+  Ollama model (3 personalities plus a custom prompt)
 
-## How It Runs
+## Status
 
-Starlette backend + FastMCP over stdio (local) or HTTP (fleet consumers on `:11226`). SQLite health DB, no corpus, no index. Keyless providers work out of the box; [Tavily](#tavily)/[Exa](#exa)/[Brave](#brave) unlock when you add keys. Nothing phones home except the search providers you query.
+| Works today | Planned |
+|---|---|
+| Parallel search across 7 providers with receipts and a coverage line | Search by field: places, academic databases, your own repos, news |
+| Fault reporting per the fleet standard, including junk detection (`unrelated`) | Reading full pages, not just snippets |
+| Relevance-ranked merge | Research workflows on top (first: a skill builder) |
+| Date filters, provider health, self-test | First downloadable release (`.mcpb`) |
+| Browser fallback for DuckDuckGo with a Settings switch | Brave provider |
+| Webapp, MCP over stdio and HTTP, `skill://super-search` resource | Crossconnects with aiwatcher, travelprep, memory |
 
-## Providers and targets
+Known weak spots: Wikipedia matches multi-word queries loosely, and OpenSERP needs
+Docker. Provider names and setup are explained in [docs/ONBOARDING.md](docs/ONBOARDING.md).
 
-Beginner-friendly guide to every name in this README. Experts: skip ahead.
+## Install
 
-### SERP
-
-Search Engine Results Page - the generic term for "web search." Google, Bing, and DuckDuckGo are all SERP providers: you send words, they send ranked links. When we say "serp kind," we mean these whole-web engines as a group.
-
-### OpenSERP
-
-Free, open-source search software ([karust/openserp](https://github.com/karust/openserp)) that you run yourself in Docker. It queries six engines (Google, Bing, Yandex, Baidu, DuckDuckGo, Ecosia) and returns clean structured data - a free replacement for paid search APIs. Our default OpenSERP provider talks to your local copy; if Docker is down, it says so instead of silently returning nothing.
-
-### DuckDuckGo
-
-The privacy-focused search engine ([duckduckgo.com](https://duckduckgo.com)). We query its lightweight results page directly - no key, no account. Independent index and independent bot-luck from Google, which is exactly why it is in the fan-out: it answers when others block.
-
-### Tavily
-
-AI-native search API ([tavily.com](https://tavily.com)) built for LLM agents: ranked results plus page content, recency and news filters. Needs a free API key (1k calls/month, no card). Without a key it shows as "not configured" and everything else keeps working.
-
-### Exa
-
-Neural search API ([exa.ai](https://exa.ai)) that finds by meaning, not just keywords. Live provider - needs an `EXA_API_KEY`; without one it reports as unconfigured stub, never silent.
-
-### Brave
-
-Privacy search API ([brave.com/search/api](https://brave.com/search/api)) with clean grounding snippets. Phase 2 provider, keyed.
-
-### Wikipedia
-
-The free encyclopedia, queried through its official API (no key, generous limits). Best for entities, places, techniques, and history - intro extracts answer most questions in three sentences. A starting point for research, never the final citation.
-
-### arXiv preprints
-
-Our sibling [arxiv-mcp](https://github.com/sandraschi/arxiv-mcp) searches fresh preprints across physics, CS, math, bio, and more (arXiv plus bioRxiv, medRxiv, ChemRxiv, Research Square, SocArXiv, PsyArXiv). SearchStudio queries it as a fleet-local provider: the world's new papers, free, private, instant.
-
-### arXiv paper library
-
-The same sibling keeps your personally saved papers (ingested full text, searchable by keyword, meaning, or hybrid). SearchStudio queries that library as a second fleet-local provider: your papers, not the world's - different answers from the same sibling.
-
-### Memory vault
-
-Your personal knowledge base in [advanced-memory-mcp](https://github.com/sandraschi/advanced-memory-mcp) (memops): notes, inbox captures, distilled skills, searchable by meaning. Phase 3 crossconnect - today's searches become tomorrow's fleet-local answers.
-
-## Quick Install
-
-Fastest working path today (first `.mcpb` release pending - no Releases exist yet):
-
-```bash
-git clone https://github.com/sandraschi/searchstudio-mcp
-cd searchstudio-mcp
-start.bat
-```
-
-Backend on `:11226`, webapp on `:11225`. See [INSTALL.md](INSTALL.md) for all methods (manual MCP config, developer mode, and the `.mcpb` path once the first release is cut).
+No release has been published yet; a one-click Claude Desktop bundle (`.mcpb`) is
+planned. Until then, follow [INSTALL.md](INSTALL.md) to set it up from source. No API
+keys are needed to start: OpenSERP (with Docker), DuckDuckGo and Wikipedia work
+without any account.
 
 ## Example Prompts
 
-> Super-search the AMD-World Labs acquisition across web and news, newest first.
+> Super-search "sitagliptin first clinical trial" and show me which providers answered.
 
-> Which providers are healthy right now, and who's been blocked today?
+> Search the last week only for news about the AMD acquisition.
 
-> Search my memory vault and Wikipedia for Hollabrunn local history.
+> Which search providers are healthy right now, and which were blocked today?
 
 ## Fleet Crossconnects
 
-| Companion | Direction | Purpose |
+| Companion | Direction | Status |
 |---|---|---|
-| [aiwatcher-mcp](https://github.com/sandraschi/aiwatcher-mcp) | aiwatcher → searchstudio | Breaking-news gap-filling (Phase 2) |
-| [travelprep-mcp](https://github.com/sandraschi/travelprep-mcp) | travelprep → searchstudio | Freshness checks: advisories, prices (Phase 2 template) |
-| [arxiv-mcp](https://github.com/sandraschi/arxiv-mcp) | searchstudio → arxiv-mcp | Fleet-local provider: preprint search |
-| [tvtropes-mcp](https://github.com/sandraschi/tvtropes-mcp) | searchstudio → tvtropes-mcp | Trivia/content queries from their depot (Phase 2) |
-| [advanced-memory-mcp](https://github.com/sandraschi/advanced-memory-mcp) | memops → searchstudio (optional) | Delegate `provider=auto` (Phase 3) |
+| [arxiv-mcp](https://github.com/sandraschi/arxiv-mcp) | searchstudio -> arxiv-mcp | Live: preprint search and your saved paper library |
+| [aiwatcher-mcp](https://github.com/sandraschi/aiwatcher-mcp) | aiwatcher -> searchstudio | Planned: breaking-news gap filling |
+| [travelprep-mcp](https://github.com/sandraschi/travelprep-mcp) | travelprep -> searchstudio | Planned: freshness checks (advisories, prices) |
+| [advanced-memory-mcp](https://github.com/sandraschi/advanced-memory-mcp) | memory -> searchstudio | Planned: memory search delegates web search here |
 
-Companions are optional and self-contained; nothing requires transitive installs.
+Companions are optional; SearchStudio runs without any of them.
 
 ## Documentation
 
 | Doc | Contents |
 |---|---|
 | [Installation](INSTALL.md) | All install methods, prerequisites |
-| [Onboarding](docs/ONBOARDING.md) | Provider keys (all optional), Docker for OpenSERP-local |
-| [Product requirements](docs/PRD.md) | Vision, phases, success criteria |
+| [Onboarding](docs/ONBOARDING.md) | Every provider explained, keys (all optional), Docker for OpenSERP |
+| [Configuration](docs/CONFIGURATION.md) | Env vars, stored keys, browser fallback switch |
+| [Tool Reference](docs/TOOLS.md) | MCP operations, receipts, fault kinds |
 | [Architecture](docs/ARCHITECTURE.md) | System design, data flow, ports |
-| [Configuration](docs/CONFIGURATION.md) | Env vars, config options |
-| [Tool Reference](docs/TOOLS.md) | All MCP operations |
+| [Product requirements](docs/PRD.md) | Vision, phases |
 | [Development](docs/DEVELOPMENT.md) | Contributing, local setup |
 | [Troubleshooting](docs/TROUBLESHOOTING.md) | Common issues |
 
 ## Requirements
 
-- Windows 10/11 (or any OS for stdio use), Python 3.11+ via `uv`
-- Claude Desktop (or opencode / any MCP host)
-- Docker *optional* - only for the OpenSERP-local provider; DDG + Wikipedia work without it
-- No API keys required - Tavily/Exa/Brave keys unlock extra providers only
+- Windows 10/11 (or any OS for stdio use)
+- Claude Desktop, or any MCP client
+- Docker Desktop, optional: only for the OpenSERP provider
+- No API keys required: Tavily and Exa keys add providers, nothing more
 
 ## License
 

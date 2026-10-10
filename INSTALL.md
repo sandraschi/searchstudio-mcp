@@ -23,7 +23,7 @@ Install these if you don't have them already:
 > No GitHub releases exist yet - this path activates with v0.1.0. Until then, use Option C/D.
 
 1. Go to [Releases](https://github.com/sandraschi/searchstudio-mcp/releases/latest)
-2. Download `searchstudio-{version}.mcpb`
+2. Download `searchstudio-mcp-v{version}.mcpb`
 3. Open Claude Desktop → drag the file onto the window
    *Or*: Settings → MCP Servers → Install from file
 

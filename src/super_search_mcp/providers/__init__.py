@@ -7,6 +7,7 @@ from .arxiv_depot import ArxivDepotProvider
 from .arxiv_local import ArxivMcpProvider
 from .ddg import DuckDuckGoProvider
 from .exa import ExaProvider
+from .modelsdev import ModelsDevProvider
 from .openserp import OpenSerpProvider
 from .tavily import TavilyProvider
 from .wikipedia import WikipediaProvider
@@ -28,6 +29,12 @@ def build_providers(settings) -> list:
             base_url=settings.arxiv_mcp_base_url, timeout_s=settings.default_timeout_s
         ),
         WikipediaProvider(timeout_s=settings.default_timeout_s),
+        ModelsDevProvider(
+            data_dir=settings.data_dir,
+            catalog_url=settings.modelsdev_catalog_url,
+            timeout_s=settings.default_timeout_s,
+            cache_hours=settings.modelsdev_cache_hours,
+        ),
         OpenSerpProvider(base_url=settings.openserp_base_url, timeout_s=settings.default_timeout_s),
         DuckDuckGoProvider(timeout_s=settings.default_timeout_s, data_dir=settings.data_dir),
         TavilyProvider(api_key=tavily_key, timeout_s=settings.default_timeout_s),

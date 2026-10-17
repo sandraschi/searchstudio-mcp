@@ -12,6 +12,9 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
+# models.dev catalog source (keyless community DB of model prices + caps).
+DEFAULT_MODELSDEV_CATALOG_URL = "https://models.dev/catalog.json"
+
 
 def _env(name: str, default: str = "") -> str:
     return os.environ.get(name, default).strip()
@@ -147,6 +150,10 @@ class Settings:
     brave_api_key: str = field(default_factory=lambda: _env("BRAVE_API_KEY"))
     default_timeout_s: float = 20.0
     max_results: int = 50
+    modelsdev_catalog_url: str = field(
+        default_factory=lambda: _env("MODELSDEV_CATALOG_URL", "") or DEFAULT_MODELSDEV_CATALOG_URL
+    )
+    modelsdev_cache_hours: float = 24.0
 
 
 settings = Settings()

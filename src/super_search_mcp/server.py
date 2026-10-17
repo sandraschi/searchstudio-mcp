@@ -1,7 +1,8 @@
-"""SearchStudio MCP server: one portmanteau + one Prefab status card.
+"""SearchStudio MCP server: portmanteau + model catalog lookup + Prefab card.
 
 Tool surface (deliberately small - Phase 1):
 - ``searchops`` - super_search | provider_health | self_test
+- ``models_lookup`` - models.dev catalog filter (tool_call + min context, by $/1M)
 - ``provider_health_app`` - Prefab card twin of provider_health (app=True)
 
 All tools are READ_ONLY with openWorldHint (they reach external networks).
@@ -26,6 +27,7 @@ from .config import settings
 from .db import _connect
 from .models import FanoutResult
 from .providers import build_providers
+from .providers.modelsdev import _iter_models, filter_models, load_catalog
 
 logger = logging.getLogger("searchstudio")
 
@@ -190,6 +192,91 @@ async def searchops(
             "error": str(e),
             "error_type": "general",
             "suggestions": ["Check backend logs; retry once (transient blocks are normal)."],
+        }
+
+
+@mcp.tool(annotations=_READ_ONLY)
+async def models_lookup(
+    query: str = "",
+    needs_tool_call: bool = False,
+    min_context: int = 0,
+    max_input_cost: float = 0.0,
+    open_weights_only: bool = False,
+    limit: int = 20,
+    refresh: bool = False,
+) -> dict:
+    """Filter the models.dev catalog by capability, context, and price.
+
+    Answers "which models have tool_call + context >= X, cheapest first?"
+    from the cached community catalog (refreshed at most once per TTL).
+    Keyless and READ_ONLY; dead catalog with no cache returns down, never
+    silent zeros.
+
+    Args:
+        query (str): Free-text filter on model id/name/description. Empty = all.
+        needs_tool_call (bool): Keep only models with tool_call support.
+        min_context (int): Minimum context window in tokens (0 = no floor).
+        max_input_cost (float): Max input $/1M tokens (0 = no cap).
+        open_weights_only (bool): Keep only open-weights models.
+        limit (int): Max rows, 1..50 (default 20). Documented cap.
+        refresh (bool): Force a catalog refresh instead of using the cache.
+
+    Returns:
+        {success, query, total, items[], meta{cached_at_ms, stale, source}} -
+        items sorted by input $/1M ascending (unknown price last), bounded by
+        limit. Failures: {success False, error, error_type, suggestions}.
+
+    Examples:
+        await models_lookup(needs_tool_call=True, min_context=200000, limit=10)
+        await models_lookup(query="claude", max_input_cost=5.0)
+    """
+    try:
+        payload, meta = await load_catalog(
+            settings.data_dir,
+            settings.modelsdev_catalog_url,
+            settings.default_timeout_s,
+            settings.modelsdev_cache_hours,
+            force_refresh=refresh,
+        )
+        if payload is None:
+            return {
+                "success": False,
+                "error": f"models.dev catalog unreachable: {meta['error']}",
+                "error_type": "down",
+                "suggestions": [
+                    "Retry shortly (transient fetch failure).",
+                    "Check MODELSDEV_CATALOG_URL and outbound network access.",
+                ],
+            }
+        rows = filter_models(
+            payload,
+            query=query or "",
+            needs_tool_call=needs_tool_call,
+            min_context=max(min_context, 0),
+            max_input_cost=max(max_input_cost, 0.0),
+            open_weights_only=open_weights_only,
+            limit=min(max(limit, 1), 50),
+        )
+        return {
+            "success": True,
+            "query": query or "",
+            "total": len(rows),
+            "items": rows,
+            "meta": {
+                "scanned": len(_iter_models(payload)),
+                "cached_at_ms": meta["cached_at_ms"],
+                "stale": meta["stale"],
+                "refresh_error": meta["error"],
+                "source": settings.modelsdev_catalog_url,
+            },
+        }
+    except Exception as e:
+        logger.exception("models_lookup failed")
+        return {
+            "success": False,
+            "error": str(e),
+            "error_type": "general",
+            "suggestions": ["Check backend logs; retry once."],
         }
 
 

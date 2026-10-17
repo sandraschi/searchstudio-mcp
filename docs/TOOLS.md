@@ -30,6 +30,32 @@ via: "camoufox"`;
 `coverage` is the one-line what-was-searched summary (fleet standard
 EXTERNAL_FAULT_TRANSPARENCY.md).
 
+`modelsdev` is the 8th fan-out provider (knowledge, keyless): free-text search
+over the cached models.dev catalog (8,900+ models, refreshed at most once per
+24h into `data/modelsdev_catalog.json`). Hits carry price/context/capability
+snippets. No date metadata exists in the catalog, so it runs unfiltered and
+says so (`time_filter_applied: false`). A failed refresh with a usable cache
+serves stale data and notes it in the receipt; with no cache it reports
+`down`.
+
+## models_lookup(...)
+
+Structured catalog filter: "which models have tool_call + context >= X,
+cheapest first?" Same cache as the `modelsdev` provider.
+
+| Param | Type | Default | Notes |
+|---|---|---|---|
+| `query` | str | `""` (all) | Free-text filter on id/name/description |
+| `needs_tool_call` | bool | `false` | Keep only tool_call models |
+| `min_context` | int | `0` | Minimum context window in tokens |
+| `max_input_cost` | float | `0` (no cap) | Max input $/1M tokens |
+| `open_weights_only` | bool | `false` | Keep only open-weights models |
+| `limit` | int | `20` | 1..50 rows, sorted by input $/1M ascending |
+| `refresh` | bool | `false` | Force a catalog refresh |
+
+Returns `{success, query, total, items[], meta{scanned, cached_at_ms, stale,
+refresh_error, source}}`. Catalog source override: `MODELSDEV_CATALOG_URL`.
+
 ## searchops(operation="provider_health", window_hours=24)
 
 Rolling scoreboard per provider: attempts, success_rate, p50_latency_ms,

@@ -69,6 +69,8 @@ relevance, not by which provider happened to answer.
   fallback (Camoufox) retries once, clearly marked in the receipt, and can be
   switched off in Settings
 - Check provider health over time and run a quick self-test across all providers
+- Look up AI models by capability and price (models.dev catalog: tool_call +
+  context floor, cheapest first) via `models_lookup`, or by name in super-search
 - Use it from Claude or any MCP client (stdio or HTTP), or from the webapp: search
   console, provider health, activity, settings (keys, fallback), chat with a local
   Ollama model (3 personalities plus a custom prompt)
@@ -77,7 +79,7 @@ relevance, not by which provider happened to answer.
 
 | Works today | Planned |
 |---|---|
-| Parallel search across 7 providers with receipts and a coverage line | Search by field: places, academic databases, your own repos, news |
+| Parallel search across 8 providers with receipts and a coverage line | Search by field: places, academic databases, your own repos, news |
 | Fault reporting per the fleet standard, including junk detection (`unrelated`) | Reading full pages, not just snippets |
 | Relevance-ranked merge | Research workflows on top (first: a skill builder) |
 | Date filters, provider health, self-test | First downloadable release (`.mcpb`) |
@@ -101,6 +103,8 @@ without any account.
 > Search the last week only for news about the AMD acquisition.
 
 > Which search providers are healthy right now, and which were blocked today?
+
+> Which models have tool_call and 200k+ context, cheapest first?
 
 ## Fleet Crossconnects
 

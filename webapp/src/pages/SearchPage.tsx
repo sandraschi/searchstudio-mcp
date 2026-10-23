@@ -436,6 +436,14 @@ export default function SearchPage() {
                         : "(unfiltered)"}
                     </span>
                   )}
+                  {r.goggles_applied && r.goggles_applied.length > 0 && (
+                    <span
+                      className="text-primary"
+                      title={r.goggles_applied.join("\n")}
+                    >
+                      (lenses: {r.goggles_applied.length})
+                    </span>
+                  )}
                 </p>
               ))}
             </div>

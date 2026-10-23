@@ -286,15 +286,36 @@ export default function GogglesPage() {
             {copied ? "Copied!" : "Copy"}
           </button>
         </div>
-        <ol className="mt-2 list-decimal space-y-1 pl-5 text-xs text-zinc-400">
+        <p className="text-xs text-zinc-400">
+          Brave fetches your file on every search, so it must live at a{" "}
+          <strong className="text-zinc-200">public https:// URL</strong>. Two
+          paths, pick one:
+        </p>
+        <ol className="list-decimal space-y-1 pl-5 text-xs text-zinc-400">
           <li>
-            Publish the text: create a public gist (or any repo file) and copy
-            its raw https:// URL — or submit at brave.com/goggles/create.
+            <strong className="text-zinc-200">Gist (no account needed).</strong>{" "}
+            Create a public gist, name the file something.goggle, paste the rule
+            text, create it, then open the Raw view and copy that URL. It looks
+            like raw.githubusercontent.com/.../something.goggle.
           </li>
-          <li>Paste that URL into a custom lens above and enable it.</li>
           <li>
-            Brave fetches the file per search. Keep it public; a private URL
-            fails closed and the receipt will say the lens errored.
+            <strong className="text-zinc-200">
+              Brave Goggles (community).
+            </strong>{" "}
+            Submit at brave.com/goggles/create and copy the published Goggle URL
+            from its page.
+          </li>
+          <li>
+            Paste the URL into a lens above and enable it. Enabling without a
+            URL is refused; a private or dead URL fails closed on Brave&apos;s
+            side.
+          </li>
+          <li>
+            <strong className="text-zinc-200">Prove it worked.</strong> Run any
+            search with Brave enabled: the Brave receipt line shows{" "}
+            <span className="font-mono">lenses: N</span> (hover it for the
+            URLs). No lenses tag, no reranking — check the URL is public and the
+            lens is toggled on.
           </li>
         </ol>
       </div>

@@ -48,6 +48,7 @@ export interface Receipt {
   blocked: boolean;
   configured: boolean;
   time_filter_applied: boolean;
+  goggles_applied?: string[];
 }
 
 export interface ProviderInfo {

@@ -57,6 +57,10 @@ const PAGES: Array<[string, string]> = [
     "Providers",
     "Rolling health scoreboard per provider: attempts, success rate, latency, blocks.",
   ],
+  [
+    "Goggles",
+    "Brave ranking lenses: prepared sets, your own entries, DIY editor, export/import. Enabled lenses ride every Brave search and are named in the receipt.",
+  ],
   ["Activity", "7-day view of the SQLite attempt ledger."],
   [
     "Tools",
@@ -175,6 +179,10 @@ const FAQS: Array<[string, string]> = [
     "Fastest provider kind with hits wins; full receipts still returned. Use under heavy blocking when one good answer beats a merged best-of-all.",
   ],
   [
+    "How do Goggles work?",
+    "Goggles are Brave ranking lenses ($boost/$downrank/$discard rules) applied server-side per request. Pick prepared ones, add your own public URLs, or compose in the editor on the Goggles page - then enable. Enabled lenses ride every Brave search and are named in the receipt (goggles_applied). No Brave key, no effect: the page says so instead of pretending.",
+  ],
+  [
     "What can I do with a paper hit?",
     "Title click toggles the abstract inline (no navigation, your search stays). Abstract button does the same. Full text lazy-loads the sibling's markdown into the card (capped display, truncates honestly). PDF opens the publisher PDF when the sibling provides one. Paper page opens the landing page. Open in arxiv-mcp jumps to the sibling webapp for depot save, citation graph, and deep read.",
   ],
@@ -238,7 +246,7 @@ const PROVIDERS: Array<{
   },
   {
     name: "Brave",
-    what: "Independent-index search API (no Google/Bing dependency): clean snippets with server-side recency (day/week/month/year). The raw-ranked counterpart to Tavily when you want a second index, not a second opinion. About $5 per 1,000 queries with a small monthly free credit.",
+    what: "Independent-index search API (no Google/Bing dependency): clean snippets with server-side recency (day/week/month/year), plus Goggles ranking lenses from the Goggles page. The raw-ranked counterpart to Tavily when you want a second index, not a second opinion. About $5 per 1,000 queries with a small monthly free credit.",
     key: "BRAVE_API_KEY",
     url: "https://brave.com/search/api",
   },

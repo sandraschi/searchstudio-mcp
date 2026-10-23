@@ -6,6 +6,9 @@
 - Paper cards in search: server badge, authors, expandable abstract, lazy
   full text via `GET /api/paper/full-text`, PDF link, Open in arxiv-mcp
 - `paper_id` (+ `server/authors/pdf_url/categories`) through the hit contract
+- Goggles page: prepared lenses, custom CRUD, DIY editor, export/import;
+  enabled lenses ride Brave searches, named in receipts (`goggles_applied`)
+- Per-provider checkboxes on the search page (leave all on = everything)
 - arxiv-mcp provider requests all 7 preprint servers (was 3 via sibling default)
 - Defenses tab: honest single-click-checkbox explainer; FAQ paper-hit entry
 

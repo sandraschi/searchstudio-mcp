@@ -2,7 +2,7 @@
 
 ## What it is
 
-SearchStudio (`searchstudio-mcp`, alias `searchstudio`) aggregates search across three provider kinds behind one query: fleet-local knowledge (arxiv-mcp preprint fan-out), curated sources (Wikipedia via MediaWiki API), and web search (self-hosted OpenSERP on Docker :7000, DuckDuckGo lite scrape, Tavily SaaS with key). Infrastructure tier: consumed by other MCP servers and agents, webapp for diagnostics and manual search. No Tauri/NSIS.
+SearchStudio (`searchstudio-mcp`, alias `searchstudio`) aggregates search across three provider kinds behind one query: fleet-local knowledge (arxiv-mcp preprint fan-out), curated sources (Wikipedia via MediaWiki API), and web search (self-hosted OpenSERP on Docker :7000, DuckDuckGo lite scrape, Tavily SaaS with key). Infrastructure tier: consumed by other MCP servers and agents, webapp for diagnostics and manual search. Desktop shell via Tauri NSIS (current-user install, backend stays separate on :11226).
 
 ## Tool surface (MCP)
 

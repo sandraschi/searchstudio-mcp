@@ -1,6 +1,6 @@
 # searchstudio-mcp - AGENTS.md
 
-FastMCP Python server (Starlette backend) + React/Vite/Bun webapp. Infrastructure tier: consumed by other MCP servers, no Tauri/NSIS.
+FastMCP Python server (Starlette backend) + React/Vite/Bun webapp. Infrastructure tier: consumed by other MCP servers. Desktop shell via Tauri NSIS (current-user, no admin); backend stays separate on :11226, the shell degrades gracefully when it is down.
 
 ## Ports (claimed, do not change)
 

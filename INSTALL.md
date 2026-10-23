@@ -41,6 +41,12 @@ Or manually:
 3. Open Claude Desktop → drag the file onto the window
    *Or*: Settings → MCP Servers → Install from file
 
+Desktop shell (optional): the same release page has
+`SearchStudio_*_x64-setup.exe` (current-user install, no admin). It is a shell
+for the webapp only — start the backend first (`just start` from a clone, or
+`python -m super_search_mcp --serve --port 11226`), then open the app. Without
+a backend it shows backend-down and waits.
+
 ## Option B - mcpb CLI
 
 ```bash

@@ -117,6 +117,11 @@ Claude Desktop (Windows) one-click:
 irm https://github.com/sandraschi/searchstudio-mcp/releases/latest/download/install.ps1 | iex
 ```
 
+Desktop app (Windows, no admin): download `SearchStudio_*_x64-setup.exe` from the
+same release page. It installs a desktop shell for the webapp; start the backend
+first (`just start` or `python -m super_search_mcp --serve`), the shell shows
+backend-down gracefully until then.
+
 The `.mcpb` registers the MCP server in Claude Desktop only and does not
 install the webapp (infrastructure tier: no NSIS installer, webapp is for
 diagnostics). Other clients: [INSTALL.md](INSTALL.md) Option C

@@ -10,6 +10,20 @@ quietly hands you nothing, or nonsense, and calls it a result.
 [![FastMCP](https://img.shields.io/badge/FastMCP-%3E%3D3.4.4-green)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+## Contents
+
+- [Why](#why) - the flaky-search problem this solves
+- [Preview](#preview) - webapp screenshots
+- [The arms race](#the-arms-race) - bot walls and our three labeled moves
+- [What You Can Do](#what-you-can-do) - features today
+- [Status](#status) - works today vs planned
+- [Install](#install) - one path, details in INSTALL.md
+- [Example Prompts](#example-prompts) - copy-paste starters
+- [Fleet Crossconnects](#fleet-crossconnects) - sibling servers
+- [Documentation](#documentation) - full doc map
+- [Requirements](#requirements) - what you need
+- [License](#license)
+
 ## Why
 
 Every developer eventually needs search in their projects, and search is the least
@@ -57,9 +71,37 @@ with unrelated robotics papers, both claiming success. SearchStudio now checks e
 Junk is reported as `unrelated` and dropped, and the merged list is ranked by
 relevance, not by which provider happened to answer.
 
+## The arms race
+
+Web search is defended territory. Sites block automated traffic because bots cost
+bandwidth and scrape the content they sell ads against. Expect four walls:
+
+- **Rate limits and refusals** - too fast from one IP and the engine stops answering.
+- **Bot-challenge and barrier pages** - DuckDuckGo shows anomaly/challenge/"not a
+  robot" pages; larger sites sit behind Cloudflare-style barriers (JS checks,
+  CAPTCHAs). Without an authorized breaker we report `blocked`, never zero
+  results. The breaker chain is the authorized answer (bridge render for DDG,
+  FlareSolverr sidecar for IUAM-class Cloudflare); token solvers stay unwired
+  until a flow presents solvable widgets.
+- **Soft blocks** - the nasty one: HTTP 200 with confident junk (the McDonald's
+  pages above). Our literal relevance check flags all-junk answers as `unrelated`
+  and drops them; meaning-based providers (Exa, arxiv-depot) are exempt.
+- **Markup drift** - result HTML changes without notice; a parse miss is reported
+  as our `bug`, not as "no results".
+
+Three labeled moves answer them: **engine rotation** inside OpenSERP-local (google,
+bing, duckduckgo, yandex, ecosia tried in order, junk-serving engines skipped);
+**the authorized breaker chain** for blocks (bridge render, engine operator-set
+via `BROWSER_MCP_ENGINE`, then FlareSolverr when `FLARESOLVERR_URL` is armed;
+every rescue marked `via` with its leg, `blocked` still true); and **paying
+where you prefer not to break anything** (Tavily/Exa keys; Wikipedia courtesy
+UA). Ground rules: breakers run only when authorized, one attempt per leg, no
+silent zeros, no unlabeled bypasses. Evaluated 2026-10-23, not wired: CapSolver,
+2Captcha, CapMonster, nodriver. Full writeup: Help page, Defenses tab.
+
 ## What You Can Do
 
-- Search the web (OpenSERP, DuckDuckGo, optional Tavily/Exa), Wikipedia and arXiv
+- Search the web (OpenSERP, DuckDuckGo, optional Tavily/Exa/Brave), Wikipedia and arXiv
   preprints with one query, in parallel
 - Read the coverage line and receipts: answered, blocked, unrelated, down, or
   missing a key - every provider, every time
@@ -79,11 +121,11 @@ relevance, not by which provider happened to answer.
 
 | Works today | Planned |
 |---|---|
-| Parallel search across 8 providers with receipts and a coverage line | Search by field: places, academic databases, your own repos, news |
+| Parallel search across 9 providers with receipts and a coverage line | Search by field: places, academic databases, your own repos, news |
 | Fault reporting per the fleet standard, including junk detection (`unrelated`) | Reading full pages, not just snippets |
 | Relevance-ranked merge | Research workflows on top (first: a skill builder) |
 | Date filters, provider health, self-test | First downloadable release (`.mcpb`) |
-| Browser fallback for DuckDuckGo with a Settings switch | Brave provider |
+| Authorized breaker chain (bridge render, FlareSolverr leg) with a Settings switch | Reading full pages, not just snippets |
 | Webapp, MCP over stdio and HTTP, `skill://super-search` resource | Crossconnects with aiwatcher, travelprep, memory |
 
 Known weak spots: Wikipedia matches multi-word queries loosely, and OpenSERP needs
@@ -92,9 +134,11 @@ Docker. Provider names and setup are explained in [docs/ONBOARDING.md](docs/ONBO
 ## Install
 
 No release has been published yet; a one-click Claude Desktop bundle (`.mcpb`) is
-planned. Until then, follow [INSTALL.md](INSTALL.md) to set it up from source. No API
-keys are needed to start: OpenSERP (with Docker), DuckDuckGo and Wikipedia work
-without any account.
+planned. The `.mcpb` registers the MCP server in Claude Desktop only and does
+not install the webapp (infrastructure tier: no NSIS installer, webapp is for
+diagnostics). Until then, follow [INSTALL.md](INSTALL.md) to set it up from
+source. No API keys are needed to start: OpenSERP (with Docker), DuckDuckGo and
+Wikipedia work without any account.
 
 ## Example Prompts
 
@@ -122,20 +166,31 @@ Companions are optional; SearchStudio runs without any of them.
 | Doc | Contents |
 |---|---|
 | [Installation](INSTALL.md) | All install methods, prerequisites |
-| [Onboarding](docs/ONBOARDING.md) | Every provider explained, keys (all optional), Docker for OpenSERP |
+| [Onboarding](docs/ONBOARDING.md) | Prerequisites per provider (Docker, siblings, Ollama), keys (all optional) |
+| [Architecture](docs/ARCHITECTURE.md) | System design, data flow, ports |
 | [Configuration](docs/CONFIGURATION.md) | Env vars, stored keys, browser fallback switch |
 | [Tool Reference](docs/TOOLS.md) | MCP operations, receipts, fault kinds |
-| [Architecture](docs/ARCHITECTURE.md) | System design, data flow, ports |
-| [Product requirements](docs/PRD.md) | Vision, phases |
 | [Development](docs/DEVELOPMENT.md) | Contributing, local setup |
 | [Troubleshooting](docs/TROUBLESHOOTING.md) | Common issues |
+| [Product requirements](docs/PRD.md) | Vision, phases |
 
 ## Requirements
 
-- Windows 10/11 (or any OS for stdio use)
-- Claude Desktop, or any MCP client
-- Docker Desktop, optional: only for the OpenSERP provider
-- No API keys required: Tavily and Exa keys add providers, nothing more
+Core (to run anything): Windows 10/11 (any OS for stdio use), Claude Desktop
+or any MCP client. No API keys required.
+
+Providers (each optional - a missing one is a named receipt, never a silent
+zero; see [docs/ONBOARDING.md](docs/ONBOARDING.md) for setup):
+
+- OpenSERP-local: Docker Desktop + openserp container on `:7000`
+- arxiv-mcp sibling backend on `:10770`: feeds both fleet-local providers
+  (fresh preprint search + your saved paper library)
+- browser-mcp on `:10780`: only for the one-shot Camoufox retry when
+  DuckDuckGo shows a bot challenge (off in Settings or via empty
+  `BROWSER_MCP_URL`)
+- Chat page only: Ollama on `:11434` with any chat model
+- Keys (all optional): `TAVILY_API_KEY` / `EXA_API_KEY` add providers;
+  `BRAVE_API_KEY` goes live: independent-index search with server-side recency
 
 ## License
 

@@ -65,17 +65,20 @@ finds by meaning, not keywords — the semantic counterpart to Tavily's
 ranking. Freshness via `startPublishedDate`. Same declared-stub contract
 without a key.
 
-### brave — grounding search (Phase 2)
+### brave — independent-index search
 
-[Brave Search API](https://brave.com/search/api): clean grounding snippets.
-Adapter lands in Phase 2; key name `BRAVE_API_KEY` is already reserved and
-accepted by the key store. Same stub contract until then.
+[Brave Search API](https://brave.com/search/api) (pricing at the
+[dashboard docs](https://api-dashboard.search.brave.com/app/documentation)):
+40B+ page independent index, clean snippets with server-side recency
+(`pd`/`pw`/`pm`/`py`), plus Goggles rerankers. The raw-ranked counterpart
+to Tavily: a second index, not a second opinion. Same declared-stub
+contract without a key (`BRAVE_API_KEY`).
 
 ## Choosing between them
 
 - One question, best effort: defaults (everything).
 - Entities/history: knowledge first.
-- Fresh news: serp, Tavily/Exa if keyed, `mode=any`, re-run over hours.
+- Fresh news: serp, Tavily/Exa/Brave if keyed, `mode=any`, re-run over hours.
 - Papers: preprint search for the world's new work, paper library for yours.
 - Forums/lived experience: DuckDuckGo carries what ranked APIs filter out.
 - Paranoid verification: same query twice with different provider pairs;

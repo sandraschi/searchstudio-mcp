@@ -12,11 +12,19 @@ Install these if you don't have them already:
 | Git | Clone repo (Option C/D only) | `winget install Git.Git` |
 | Python + uv | Run server (Option C/D only) | `winget install astral-sh.uv` |
 | Bun | Webapp (Option C/D only) | `winget install Oven-sh.Bun` |
+| Node.js | mcpb CLI (Option B only) | `winget install OpenJS.NodeJS` |
+| Just | Developer tasks (Option D only) | `winget install Casey.Just` |
+| Ollama | Chat page (optional, local-first) | `winget install Ollama.Ollama` |
 | Docker Desktop | OpenSERP-local provider (optional) | `winget install Docker.DockerDesktop` |
 
-> Windows: all installs via [winget](https://learn.microsoft.com/en-us/windows/package-manager/winget/)
-> macOS: use `brew install` equivalents
-> Linux: use your distro package manager
+> Windows: all installs via [winget](https://learn.microsoft.com/en-us/windows/package-manager/winget/).
+> After winget installs, close and reopen the terminal so PATH refreshes.
+> macOS: use `brew install` equivalents.
+> Linux: use your distro package manager.
+
+> Chat is local-first: it talks to Ollama on `http://127.0.0.1:11434`
+> (`ollama pull qwen3:8b` or any chat model). No cloud fallback in this repo,
+> so a weak PC without a GPU can use every search feature but should skip Chat.
 
 ## Option A - Drag and Drop (Recommended, pending first release)
 
@@ -38,6 +46,7 @@ npx @anthropic-ai/mcpb install https://github.com/sandraschi/searchstudio-mcp
 
 1. Clone: `git clone https://github.com/sandraschi/searchstudio-mcp`
 2. Install deps: `cd searchstudio-mcp && uv sync`
+   (no `[project.scripts]` entry point in `pyproject.toml`, so `python -m super_search_mcp` below is canonical, not a deprecated namespace).
 3. Add to Claude Desktop config:
 
 ```json

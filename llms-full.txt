@@ -31,7 +31,7 @@ Merge: kind priority fleet-local → knowledge → serp, URL-normalized dedupe, 
 
 ## Env
 
-TAVILY_API_KEY (optional), EXA_API_KEY / BRAVE_API_KEY (Phase 2), OPENSERP_BASE_URL (default 127.0.0.1:7000), ARXIV_MCP_BASE_URL (default 127.0.0.1:10770), SUPER_SEARCH_DATA_DIR (default data), SUPER_SEARCH_BACKEND_PORT (default 11226). Never commit keys.
+TAVILY_API_KEY (optional), EXA_API_KEY (optional), BRAVE_API_KEY (optional), OPENSERP_BASE_URL (default 127.0.0.1:7000), ARXIV_MCP_BASE_URL (default 127.0.0.1:10770), SUPER_SEARCH_DATA_DIR (default data), SUPER_SEARCH_BACKEND_PORT (default 11226). Never commit keys.
 
 ## Architecture
 

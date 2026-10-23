@@ -6,6 +6,11 @@ export interface Hit {
   kind: string;
   published?: string | null;
   score?: number | null;
+  // Paper extras (arxiv-mcp hits only; absent elsewhere).
+  server?: string;
+  authors?: string[];
+  pdf_url?: string | null;
+  categories?: string[];
 }
 
 export interface Receipt {

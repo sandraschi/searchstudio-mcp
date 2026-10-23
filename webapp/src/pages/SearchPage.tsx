@@ -150,29 +150,117 @@ export default function SearchPage() {
             {result.receipts.length} providers answered
           </p>
           <div className="space-y-2" data-testid="search-results">
-            {result.hits.map((h) => (
-              <a
-                key={`${h.provider}:${h.url}`}
-                href={h.url}
-                target="_blank"
-                rel="noreferrer"
-                className="block rounded-xl border border-zinc-800 bg-zinc-900/50 p-3 hover:border-zinc-600"
-              >
-                <p className="text-sm font-medium text-zinc-100">{h.title}</p>
-                <p className="mt-0.5 line-clamp-2 text-xs text-zinc-400">
-                  {h.snippet}
-                </p>
-                <p className="mt-1 flex gap-2 text-[11px] text-zinc-500">
-                  <span className="rounded bg-zinc-800 px-1.5 py-0.5">
-                    {h.provider}
-                  </span>
-                  <span className="rounded bg-zinc-800 px-1.5 py-0.5">
-                    {h.kind}
-                  </span>
-                  <span className="truncate">{h.url}</span>
-                </p>
-              </a>
-            ))}
+            {result.hits.map((h) => {
+              // Paper hits (fleet-local: arxiv-mcp, arxiv-depot) get the rich
+              // card: server badge, authors, expandable abstract, PDF link,
+              // and a handoff into the sibling arxiv-mcp webapp (claimed
+              // port 10771, see operations/WEBAPP_PORTS.md). Everything else
+              // keeps the flat link card.
+              const isPaper = h.kind === "fleet-local";
+              if (!isPaper) {
+                return (
+                  <a
+                    key={`${h.provider}:${h.url}`}
+                    href={h.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block rounded-xl border border-zinc-800 bg-zinc-900/50 p-3 hover:border-zinc-600"
+                  >
+                    <p className="text-sm font-medium text-zinc-100">
+                      {h.title}
+                    </p>
+                    <p className="mt-0.5 line-clamp-2 text-xs text-zinc-400">
+                      {h.snippet}
+                    </p>
+                    <p className="mt-1 flex gap-2 text-[11px] text-zinc-500">
+                      <span className="rounded bg-zinc-800 px-1.5 py-0.5">
+                        {h.provider}
+                      </span>
+                      <span className="rounded bg-zinc-800 px-1.5 py-0.5">
+                        {h.kind}
+                      </span>
+                      <span className="truncate">{h.url}</span>
+                    </p>
+                  </a>
+                );
+              }
+              return (
+                <div
+                  key={`${h.provider}:${h.url}`}
+                  data-testid="paper-hit"
+                  className="block rounded-xl border border-zinc-800 bg-zinc-900/50 p-3"
+                >
+                  <a
+                    href={h.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-sm font-medium text-zinc-100 hover:underline"
+                  >
+                    {h.title}
+                  </a>
+                  <p className="mt-1 flex flex-wrap gap-1.5 text-[11px] text-zinc-500">
+                    {h.server && (
+                      <span className="rounded bg-amber-900/40 px-1.5 py-0.5 text-amber-300">
+                        {h.server}
+                      </span>
+                    )}
+                    <span className="rounded bg-zinc-800 px-1.5 py-0.5">
+                      {h.provider}
+                    </span>
+                    {h.published && <span>{h.published}</span>}
+                    {h.categories && h.categories.length > 0 && (
+                      <span className="truncate">
+                        {h.categories.join(", ")}
+                      </span>
+                    )}
+                  </p>
+                  {h.authors && h.authors.length > 0 && (
+                    <p className="mt-1 text-xs text-zinc-400">
+                      {h.authors.join(", ")}
+                    </p>
+                  )}
+                  {h.snippet && (
+                    <details className="mt-1">
+                      <summary className="cursor-pointer text-[11px] text-zinc-500">
+                        Abstract
+                      </summary>
+                      <p className="mt-0.5 text-xs leading-relaxed text-zinc-400">
+                        {h.snippet}
+                      </p>
+                    </details>
+                  )}
+                  <p className="mt-1.5 flex flex-wrap gap-3 text-[11px]">
+                    <a
+                      href={h.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-primary hover:underline"
+                    >
+                      Paper page
+                    </a>
+                    {h.pdf_url && (
+                      <a
+                        href={h.pdf_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-primary hover:underline"
+                      >
+                        PDF
+                      </a>
+                    )}
+                    <a
+                      href="http://127.0.0.1:10771/search"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-primary hover:underline"
+                      title="Open the sibling arxiv-mcp webapp search"
+                    >
+                      Open in arxiv-mcp
+                    </a>
+                  </p>
+                </div>
+              );
+            })}
             {result.hits.length === 0 && (
               <p className="text-sm text-zinc-500">
                 No hits. Check the receipts below - if no provider answered,

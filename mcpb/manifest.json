@@ -11,13 +11,14 @@
       "command": "python",
       "args": ["-m", "super_search_mcp"],
       "env": {
-        "PYTHONPATH": "${PWD}",
+        "PYTHONPATH": "${__dirname}${/}src",
         "PYTHONUNBUFFERED": "1"
       }
     }
   },
   "tools": [
     { "name": "searchops", "description": "Parallel multi-provider search (super_search), provider health scoreboard, flakiness self-test" },
+    { "name": "models_lookup", "description": "Filter the models.dev catalog by capability, context, and price" },
     { "name": "provider_health_app", "description": "Provider health scoreboard as an in-chat Prefab card" }
   ]
 }

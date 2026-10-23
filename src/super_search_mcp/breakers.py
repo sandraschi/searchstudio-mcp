@@ -51,6 +51,7 @@ def _client(timeout_s: float = 20.0) -> httpx.AsyncClient:
         follow_redirects=True,
     )
 
+
 BROWSER_ENGINES = ("camoufox", "playwright", "obscura", "auto")
 DEFAULT_ENGINE = "camoufox"
 

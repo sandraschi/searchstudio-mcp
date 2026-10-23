@@ -315,6 +315,55 @@ async def api_paper_full_text(request):
     return JSONResponse({"success": True, "paper_id": pid, "markdown": text, "truncated": capped})
 
 
+async def api_goggles(request):
+    """GET /api/goggles: all lenses (prepared + custom) with enabled flags."""
+    from .goggles import load_store
+
+    return JSONResponse({"success": True, **load_store(settings.data_dir)})
+
+
+async def api_goggles_save(request):
+    """POST /api/goggles {name, url?, notes?, enabled?}: upsert a lens.
+
+    Enabling requires a public https URL; otherwise the lens would silently
+    do nothing. Returns {success, entry?} or {success: False, error}.
+    """
+    from .goggles import upsert_entry
+
+    try:
+        body = await request.json()
+    except Exception:
+        return JSONResponse({"success": False, "error": "invalid JSON body"}, status_code=400)
+    if not isinstance(body, dict):
+        return JSONResponse({"success": False, "error": "expected a JSON object"}, status_code=400)
+    entry, err = upsert_entry(
+        settings.data_dir,
+        body.get("name", ""),
+        url=body.get("url", ""),
+        notes=body.get("notes", ""),
+        enabled=body.get("enabled"),
+    )
+    if err:
+        return JSONResponse({"success": False, "error": err}, status_code=400)
+    return JSONResponse({"success": True, "entry": entry})
+
+
+async def api_goggles_delete(request):
+    """DELETE /api/goggles {name}: delete a custom lens (prepared are kept)."""
+    from .goggles import delete_entry
+
+    try:
+        body = await request.json()
+    except Exception:
+        return JSONResponse({"success": False, "error": "invalid JSON body"}, status_code=400)
+    if not isinstance(body, dict):
+        return JSONResponse({"success": False, "error": "expected a JSON object"}, status_code=400)
+    ok, err = delete_entry(settings.data_dir, body.get("name", ""))
+    if not ok:
+        return JSONResponse({"success": False, "error": err}, status_code=400)
+    return JSONResponse({"success": True})
+
+
 def build_app() -> Starlette:
     _mcp_http = mcp.http_app(path="/")
 
@@ -339,6 +388,9 @@ def build_app() -> Starlette:
         Route("/api/settings/fallbacks", api_fallbacks, methods=["GET"]),
         Route("/api/settings/fallbacks", api_fallbacks_save, methods=["POST"]),
         Route("/api/paper/full-text", api_paper_full_text, methods=["GET"]),
+        Route("/api/goggles", api_goggles, methods=["GET"]),
+        Route("/api/goggles", api_goggles_save, methods=["POST"]),
+        Route("/api/goggles", api_goggles_delete, methods=["DELETE"]),
     ]
     app = Starlette(routes=routes, lifespan=_lifespan_all)
     app.mount("/mcp", _mcp_http)

@@ -1,5 +1,14 @@
 # Changelog - SearchStudio
 
+## [Unreleased]
+
+### Added
+- Paper cards in search: server badge, authors, expandable abstract, lazy
+  full text via `GET /api/paper/full-text`, PDF link, Open in arxiv-mcp
+- `paper_id` (+ `server/authors/pdf_url/categories`) through the hit contract
+- arxiv-mcp provider requests all 7 preprint servers (was 3 via sibling default)
+- Defenses tab: honest single-click-checkbox explainer; FAQ paper-hit entry
+
 ## [0.1.0] - 2026-10-23 (first release)
 
 ### Added

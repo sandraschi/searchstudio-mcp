@@ -17,7 +17,7 @@ Parallel fan-out, merged hits, per-provider receipts.
 
 Returns `{success, query, total, hits[], receipts[], coverage}` (`mode_winner_kind` in `any` mode).
 Hits carry `title, url, snippet, provider, kind, published, score`; paper hits
-(arxiv-mcp) also carry `server, authors[], pdf_url, categories[]`.
+(arxiv-mcp, arxiv-depot) also carry `server, authors[], pdf_url, categories[], paper_id`.
 Failure: `{success: False, error, error_type, suggestions}`.
 Receipts carry `fault_kind` (`rate_limited|slow|blocked|unrelated|down|unconfigured|bug`),
 `user_message`, `what_to_do`, `retry_in` alongside the technical `error`.
@@ -26,9 +26,9 @@ block or a broken upstream search); its hits are dropped and `count` still shows
 what it returned. Meaning-based providers (Exa, arXiv library) are exempt.
 Merged hits are ranked by a literal relevance score first, kind order second.
 `via` names the fallback route when one answered (empty = direct): DuckDuckGo
-falls back to a Camoufox render through browser-mcp (`BROWSER_MCP_URL`, empty
-disables) only after a bot challenge, and then reports `ok: true, blocked: true,
-via: "camoufox"`;
+falls back to the authorized breaker chain (bridge render engine, then
+FlareSolverr when armed) only after a bot challenge, and then reports
+`ok: true, blocked: true, via: "<leg>"`;
 `coverage` is the one-line what-was-searched summary (fleet standard
 EXTERNAL_FAULT_TRANSPARENCY.md).
 
@@ -73,3 +73,11 @@ providers. Returns `{matrix[{probe, total, by_provider, failed}]}`.
 
 Prefab card twin of provider_health (`app=True`). Plain-text summary fallback
 plus in-chat card; failures render as error cards (`is_error=True`).
+
+## REST: GET /api/paper/full-text?paper_id=
+
+Lazy full text for a paper card. Proxies the sibling's markdown (HTML with
+PDF fallback), capped at 100k chars (`truncated: true` when capped).
+`{success, paper_id, markdown, truncated}` or `{success: False, error}`.
+Powers the SearchPage "Full text" button; agents can call it directly
+instead of re-searching.

@@ -8,7 +8,7 @@ SearchStudio (`searchstudio-mcp`, alias `searchstudio`) aggregates search across
 
 Portmanteau `searchops(operation=...)`, all READ_ONLY + openWorldHint:
 
-- `super_search`: query* (required), kinds CSV (fleet-local,knowledge,serp; default all), providers CSV allowlist (default all), time_filter (reserved informational, default any), limit 1..50 (default 10), mode balanced|any (default balanced). Returns {query, total, hits[{title,url,snippet,provider,kind,published,score}], receipts[{provider,kind,ok,latency_ms,count,error,blocked,configured}]}. mode=any adds mode_winner_kind (fastest kind with hits). Failures: {success False, error, error_type, suggestions}.
+- `super_search`: query* (required), kinds CSV (fleet-local,knowledge,serp; default all), providers CSV allowlist (default all), time_filter any/day/week/month/year (default any; Tavily/Exa/Brave/sibling pass it natively, OpenSERP appends after:, DDG/Wikipedia run unfiltered and say so), limit 1..50 (default 10), mode balanced|any (default balanced). Returns {query, total, hits[{title,url,snippet,provider,kind,published,score + paper extras server,authors[],pdf_url,categories[],paper_id}], receipts[{provider,kind,ok,latency_ms,count,error,blocked,configured,fault_kind}]}. mode=any adds mode_winner_kind (fastest kind with hits). Failures: {success False, error, error_type, suggestions}.
 - `provider_health`: window_hours (default 24). Rolling scoreboard per provider: attempts, success_rate, p50_latency_ms, blocked, plus live configured flags. Empty when no searches recorded yet (says so).
 - `self_test`: 3 canonical probes (evergreen news, local history, niche how-to) across all providers; returns matrix with per-provider counts and failure lists.
 - `provider_health_app`: Prefab card twin (app=True), plain-text fallback, is_error on failure paths.
@@ -17,15 +17,19 @@ Phase 2/3 operations (aiwatcher_feed, condense) are NOT in the surface until bui
 
 ## REST (Starlette, port 11226)
 
-/api/health → {success, service, version, configured, authenticated: true, db, providers[{name,kind,configured}]}. /api/capabilities → tools + rest + kinds. /api/skills → [{super-search}]. /skill/super-search → SKILL.md text. /api/search?q=&kinds=&providers=&limit=&mode= → super_search mirror. /api/providers?window_hours= → scoreboard + configured. /api/matrix → self_test. /mcp → MCP streamable HTTP (lifespan-shared with parent app; FastMCP 3.4.4+ pitfall avoided).
+/api/health → {success, service, version, configured, authenticated: true, db, providers[{name,kind,configured}]}. /api/capabilities → tools + rest + kinds. /api/skills → [{super-search}]. /skill/super-search → SKILL.md text. /api/search?q=&kinds=&providers=&limit=&mode= → super_search mirror. /api/providers?window_hours= → scoreboard + configured. /api/matrix → self_test. /api/paper/full-text?paper_id= → sibling markdown (capped 100k, truncated flag). GET/POST/DELETE /api/provider-keys (+/test one-call key probe), GET/POST /api/settings/fallbacks (breaker switch, reports engine + armed legs). /mcp → MCP streamable HTTP (lifespan-shared with parent app; FastMCP 3.4.4+ pitfall avoided).
 
 ## Providers
 
-- arxiv-mcp (fleet-local, keyless): GET {ARXIV_MCP_BASE_URL}/api/preprints/search, maps merged papers. Down = error receipt naming the URL.
+- arxiv-mcp (fleet-local, keyless): GET {ARXIV_MCP_BASE_URL}/api/preprints/search with servers=all-7 (arxiv,biorxiv,medrxiv,chemrxiv,researchsquare,socarxiv,psyarxiv), maps merged papers incl. pdf_url/server/categories. Down = error receipt naming the URL.
+- arxiv-depot (fleet-local, keyless): personal library via /api/depot/search (keyword/semantic/hybrid), fts fallback on 503, empty = ok/0.
+- modelsdev (knowledge, keyless): cached models.dev catalog lookup (tool_call/context/price), refresh at most 24h.
 - wikipedia (knowledge, keyless): MediaWiki generator=search single round trip, courtesy User-Agent per Wikimedia policy.
 - openserp-local (serp, keyless): {OPENSERP_BASE_URL}/{engine}/search, engines google,bing,duckduckgo,yandex,ecosia tried in order, first hits win. Dead Docker = error receipt asking about Docker explicitly.
-- duckduckgo (serp, keyless): lite.duckduckgo.com scrape, defensive regex, redirect-unwrap (uddg), anomaly-page detection → blocked=True.
-- tavily (serp, keyed): POST api.tavily.com/search with Bearer key. No key = declared stub (configured False + setup hint), fan-out continues.
+- duckduckgo (serp, keyless): lite.duckduckgo.com scrape, defensive regex, redirect-unwrap (uddg), anomaly-page detection → blocked=True; authorized breaker chain (bridge engine camoufox/playwright/obscura/auto, then FlareSolverr when armed) rescues with via=leg.
+- tavily (serp, keyed): POST api.tavily.com/search with Bearer key, recency native. No key = declared stub (configured False + setup hint), fan-out continues.
+- exa (serp, keyed): neural search + contents, exempt from junk check. No key = declared stub.
+- brave (serp, keyed): independent index, freshness pd/pw/pm/py native. No key = declared stub.
 
 Merge: kind priority fleet-local → knowledge → serp, URL-normalized dedupe, bounded by limit. Dispatch is keyword-only (positional misrouting caused a live biorxiv incident elsewhere; contract test pins it). Health ledger: SQLite WAL at data/searchstudio.sqlite3, advisory writes (never fail searches), per-provider locking semantics via short transactions.
 
@@ -39,7 +43,7 @@ Fan-out: asyncio.gather over selected providers → merge → record health → 
 
 ## Webapp (port 11225, React+Vite+bun)
 
-Pages: Dashboard (hero, quick queries, provider cards, red onboarding CTA when providers unconfigured), Search console (query, kind checkboxes, limit, hits + receipts), Providers (cards + flakiness matrix trigger), Activity (7-day call trail = inbox analog), Tools (surface reference), Skills (SKILL.md render + skill:// note), Chat (skill-first, 4 personalities, local Ollama resident-first default, history/export/clear), Settings (Ollama status, key status read-only, onboarding), Help (FAQ), Logs (locations + ledger pointer). Dark default. data-testids on primary controls.
+Pages: Dashboard (hero, quick queries, provider cards, red onboarding CTA when providers unconfigured), Search console (query, kind checkboxes, limit, paper cards for fleet-local hits with abstract/full-text/PDF/sibling handoff, plus receipts), Providers (cards + flakiness matrix trigger), Activity (7-day call trail = inbox analog), Tools (surface reference), Skills (SKILL.md render + skill:// note), Chat (skill-first, 4 personalities, local Ollama resident-first default, history/export/clear), Settings (Ollama status, key status read-only, onboarding), Help (7 tabs incl. Defenses + providers), Logs (locations + ledger pointer). Dark default. data-testids on primary controls.
 
 ## Troubleshooting (short)
 

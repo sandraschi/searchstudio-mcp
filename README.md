@@ -75,8 +75,9 @@ CapSolver, 2Captcha, CapMonster, nodriver. Full writeup: Help page, Defenses tab
 ## What You Can Do
 
 - Search the web (OpenSERP, DuckDuckGo, optional Tavily/Exa/Brave), Wikipedia and
-  preprints across 7 servers (arXiv + bioRxiv/medRxiv/ChemRxiv/Research Square/
-  SocArXiv/PsyArXiv) with one query, in parallel
+  preprints across 7 servers with one query, in parallel
+- Read paper hits as cards: title toggles the abstract, Full text loads inline,
+  PDF when available, handoff to the arxiv-mcp webapp for depot save and citations
 - Read the coverage line and receipts: answered, blocked, unrelated, down, or
   missing a key - every provider, every time
 - Restrict to recent results (day/week/month/year); providers that cannot filter

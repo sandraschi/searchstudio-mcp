@@ -51,7 +51,7 @@ const PAGES: Array<[string, string]> = [
   ],
   [
     "Search",
-    "One query across all kinds, merged hits, per-provider receipts, coverage line.",
+    "One query across all kinds, merged hits, per-provider receipts, coverage line. Fleet-local hits render as paper cards: title toggles the abstract, Full text loads inline, PDF and Open in arxiv-mcp hand off.",
   ],
   [
     "Providers",
@@ -173,6 +173,10 @@ const FAQS: Array<[string, string]> = [
   [
     "What is mode=any?",
     "Fastest provider kind with hits wins; full receipts still returned. Use under heavy blocking when one good answer beats a merged best-of-all.",
+  ],
+  [
+    "What can I do with a paper hit?",
+    "Title click toggles the abstract inline (no navigation, your search stays). Abstract button does the same. Full text lazy-loads the sibling's markdown into the card (capped display, truncates honestly). PDF opens the publisher PDF when the sibling provides one. Paper page opens the landing page. Open in arxiv-mcp jumps to the sibling webapp for depot save, citation graph, and deep read.",
   ],
   [
     "How do we get past the 'are you human' click-the-box page?",

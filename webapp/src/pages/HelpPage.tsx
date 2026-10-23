@@ -175,6 +175,10 @@ const FAQS: Array<[string, string]> = [
     "Fastest provider kind with hits wins; full receipts still returned. Use under heavy blocking when one good answer beats a merged best-of-all.",
   ],
   [
+    "How do we get past the 'are you human' click-the-box page?",
+    "Honestly: usually we don't click it. The box scores behavior (mouse path, timing, browser signals, IP) - our breakers win one level earlier by being undetectable, so the box is never shown. If it IS shown, the bridge render cannot click (fetch-only) and FlareSolverr does not do interactive CAPTCHAs, so the receipt stays blocked and says why. A scripted human-like click or a solver-service token would work; both need a user-authorized interactive flow that is not built yet.",
+  ],
+  [
     "What is unrelated in a receipt?",
     "The provider answered, but not one hit mentions the query (an engine serving junk to automated traffic, or a broken upstream search). Its hits are dropped on purpose and count still shows what it returned. Meaning-based providers (Exa, arxiv library) are exempt from the check.",
   ],
@@ -188,7 +192,7 @@ const PROVIDERS: Array<{
 }> = [
   {
     name: "arxiv-mcp",
-    what: "Fresh preprint search across 7 servers (arXiv plus bioRxiv, medRxiv, ChemRxiv, Research Square, SocArXiv, PsyArXiv) via the sibling backend. Needs the sibling on :10770, degrades gracefully when down.",
+    what: "Fresh preprint search across 7 sources, not just arXiv: the arXiv API plus bioRxiv/medRxiv (biology/medicine), ChemRxiv (chemistry), Research Square (multidisciplinary), SocArXiv/PsyArXiv (social/psychology). Fanned out in parallel by the sibling backend; slow servers report named faults. Needs the sibling on :10770, degrades gracefully when down.",
     key: "None (needs the sibling on :10770)",
     url: "https://github.com/sandraschi/arxiv-mcp",
   },
@@ -771,6 +775,25 @@ export default function HelpPage() {
                 solvers and breakers run when you authorize them (Settings
                 switch, env), always marked, always bounded. Keyed APIs remain
                 the no-fuss path where you prefer not to break anything.
+              </p>
+            </div>
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
+              <p className="text-sm font-medium text-zinc-100">
+                The single-click &quot;are you human&quot; box, honestly
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-zinc-400">
+                That checkbox (reCAPTCHA, hCaptcha, Turnstile widget) is a
+                behavior test, not a quiz: it scores mouse path, timing, browser
+                signals, and IP reputation. Our breakers win one level earlier.
+                Camoufox is undetectable enough that the box is usually never
+                shown: nothing is solved, no puzzle appears. But when the box IS
+                shown, neither the bridge render (fetch-only, it cannot click)
+                nor FlareSolverr (no interactive CAPTCHAs) clicks it, and the
+                receipt stays blocked and says so. Two real ways through exist
+                and neither is wired yet: a scripted human-like click inside an
+                interactive browser session, or a solver service spending a
+                token for the widget&apos;s sitekey. Both need a user-authorized
+                interactive flow we have not built.
               </p>
             </div>
             <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">

@@ -141,8 +141,13 @@ words, an engine sends back ranked links. Receipts group these as "Web".
 ### Fleet-local (your own sources)
 
 - **arXiv preprints** (`arxiv-mcp`) - the sibling
-  [arxiv-mcp](https://github.com/sandraschi/arxiv-mcp) searches fresh preprints
-  (arXiv plus bioRxiv, medRxiv and others). Needs the arxiv-mcp backend running.
+  [arxiv-mcp](https://github.com/sandraschi/arxiv-mcp) fans one query out to
+  7 preprint servers in parallel, not just arXiv: the arXiv API plus bioRxiv
+  and medRxiv (biology/medicine, Cold Spring Harbor API), ChemRxiv and
+  Research Square (chemistry plus multidisciplinary), SocArXiv and PsyArXiv
+  (social sciences, psychology, OSF API). SearchStudio asks for all 7 every
+  time; slow servers report their own named faults instead of failing the
+  search. Needs the arxiv-mcp backend running.
 - **arXiv paper library** (`arxiv-depot`) - the same sibling's library of papers you
   saved yourself, searched by keyword and meaning. Your papers, not the world's.
 - **Memory vault** - your notes in

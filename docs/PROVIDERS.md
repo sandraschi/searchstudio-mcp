@@ -10,10 +10,14 @@ see patterns/WEB_SEARCH_IS_IFFY.md in mcp-central-docs.
 
 The sibling [arxiv-mcp](https://github.com/sandraschi/arxiv-mcp) backend
 searches 7 preprint servers live: arXiv itself plus bioRxiv, medRxiv,
-ChemRxiv, Research Square, SocArXiv, and PsyArXiv. No key; needs the sibling
-on `ARXIV_MCP_BASE_URL` (default :10770). Down sibling = error receipt
-naming the URL, fan-out continues. Freshness maps onto the sibling's native
-`hours` parameter.
+ChemRxiv, Research Square, SocArXiv, and PsyArXiv. Behind the names: the
+arXiv API, the Cold Spring Harbor API (bioRxiv/medRxiv), the Research Square
+API (ChemRxiv plus multidisciplinary), and the OSF Preprints API (SocArXiv,
+PsyArXiv). SearchStudio requests all 7 every call; slow servers report
+their own named faults instead of failing the search. No key; needs the
+sibling on `ARXIV_MCP_BASE_URL` (default :10770). Down sibling = error
+receipt naming the URL, fan-out continues. Freshness maps onto the
+sibling's native `hours` parameter.
 
 ### arxiv-depot — your paper library
 

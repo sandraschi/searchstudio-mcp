@@ -49,53 +49,34 @@ repos are planned** - see [Status](#status).
 
 ## A real example
 
-Live run, 2026-10-11, query `sitagliptin first clinical trial`, top 6 of the merged
-results:
-
-```text
-Coverage: Fleet-local: arxiv-mcp ok(0), arxiv-depot ok(10). Knowledge: wikipedia
-ok(10). Web: openserp-local ok(10), duckduckgo ok(10), tavily unconfigured,
-exa unconfigured.
-
-1. Effect of Sitagliptin on Cardiovascular Outcomes in Type 2 Diabetes   nejm.org
-2. Chapter 7 Case History: JANUVIA (Sitagliptin)                         sciencedirect.com
-3. The Discovery and Development of Sitagliptin Phosphate                benchchem.com
-4. TECOS, Merck's Cardiovascular Safety Trial of JANUVIA (sitagliptin)   merck.com
-5. Discovery of JANUVIA (Sitagliptin), a Selective ... Inhibitor         researchgate.net
-6. (S)-Sitagliptin Phosphate: Initial Preclinical Studies                benchchem.com
-```
-
-The same query minutes earlier, before that night's fixes, is why the receipts
-matter: one web engine answered with McDonald's menu pages and the preprint search
-with unrelated robotics papers, both claiming success. SearchStudio now checks every answer against the query.
-Junk is reported as `unrelated` and dropped, and the merged list is ranked by
-relevance, not by which provider happened to answer.
+Live run, 2026-10-11, `sitagliptin first clinical trial`: one web engine answered
+with McDonald's menu pages, the preprint search with unrelated robotics papers.
+Both claimed success. Both were flagged `unrelated` and dropped, and every
+provider got its receipt. That is the whole product: no silent zeros, ever.
 
 ## The arms race
 
 Web search is defended territory: rate limits, bot-challenge pages (DDG
 anomaly/challenge screens, Cloudflare-style JS barriers and CAPTCHAs), soft
 blocks (HTTP 200 with confident junk), and markup drift. Without an authorized
-breaker we report `blocked`, never zero results; junk is flagged `unrelated`
-and dropped (meaning-based Exa/arxiv-depot exempt); parse misses are our `bug`.
+breaker we report `blocked`, never zero results.
 
 "Breaker" is our word for an authorized second try: it fires only after the
 direct fetch fails, every rescue is labeled with its leg, and nothing runs
 unless you switch it on. **Camoufox** (bridge render) is a Firefox fork built
 for undetectability - the challenge detects automation, not humans, so it is
-simply never challenged: nothing is "solved", the puzzle never appears.
-**FlareSolverr** (sidecar) drives undetected Chrome through Cloudflare IUAM
-challenges and returns cleared HTML. Up to a point, by design: passive
-detection is evaded, active puzzles (image CAPTCHAs, checkbox Turnstile) are
-NOT solved - those stay `blocked`, keyed APIs are the paid way through.
-Ground rules: one attempt per leg, no hammering, no silent zeros, no unlabeled
-bypasses. Evaluated 2026-10-23, not wired: CapSolver, 2Captcha, CapMonster,
-nodriver. Full writeup: Help page, Defenses tab.
+simply never challenged. **FlareSolverr** (sidecar) drives undetected Chrome
+through Cloudflare IUAM challenges. Up to a point, by design: passive detection
+is evaded, active puzzles (image CAPTCHAs, checkbox Turnstile) are NOT solved -
+those stay `blocked`, keyed APIs are the paid way through. Ground rules: one
+attempt per leg, no hammering, no silent zeros. Evaluated 2026-10-23, not wired:
+CapSolver, 2Captcha, CapMonster, nodriver. Full writeup: Help page, Defenses tab.
 
 ## What You Can Do
 
-- Search the web (OpenSERP, DuckDuckGo, optional Tavily/Exa/Brave), Wikipedia and arXiv
-  preprints with one query, in parallel
+- Search the web (OpenSERP, DuckDuckGo, optional Tavily/Exa/Brave), Wikipedia and
+  preprints across 7 servers (arXiv + bioRxiv/medRxiv/ChemRxiv/Research Square/
+  SocArXiv/PsyArXiv) with one query, in parallel
 - Read the coverage line and receipts: answered, blocked, unrelated, down, or
   missing a key - every provider, every time
 - Restrict to recent results (day/week/month/year); providers that cannot filter
@@ -117,9 +98,9 @@ nodriver. Full writeup: Help page, Defenses tab.
 | Parallel search across 9 providers with receipts and a coverage line | Search by field: places, academic databases, your own repos, news |
 | Fault reporting per the fleet standard, including junk detection (`unrelated`) | Reading full pages, not just snippets |
 | Relevance-ranked merge | Research workflows on top (first: a skill builder) |
-| Date filters, provider health, self-test | First downloadable release (`.mcpb`) |
-| Authorized breaker chain (bridge render, FlareSolverr leg) with a Settings switch | Reading full pages, not just snippets |
-| Webapp, MCP over stdio and HTTP, `skill://super-search` resource | Crossconnects with aiwatcher, travelprep, memory |
+| Date filters, provider health, self-test | Reading full pages, not just snippets |
+| Authorized breaker chain (bridge render, FlareSolverr leg) with a Settings switch | Crossconnects with aiwatcher, travelprep, memory |
+| Webapp, MCP over stdio and HTTP, `skill://super-search` resource, first release (`.mcpb`) | |
 
 Known weak spots: Wikipedia matches multi-word queries loosely, and OpenSERP needs
 Docker. Provider names and setup are explained in [docs/ONBOARDING.md](docs/ONBOARDING.md).
@@ -184,9 +165,8 @@ zero; see [docs/ONBOARDING.md](docs/ONBOARDING.md) for setup):
 - OpenSERP-local: Docker Desktop + openserp container on `:7000`
 - arxiv-mcp sibling backend on `:10770`: feeds both fleet-local providers
   (fresh preprint search + your saved paper library)
-- browser-mcp on `:10780`: only for the one-shot Camoufox retry when
-  DuckDuckGo shows a bot challenge (off in Settings or via empty
-  `BROWSER_MCP_URL`)
+- browser-mcp on `:10780`: only for the authorized breaker chain when a
+  provider shows a bot wall (off in Settings or via empty `BROWSER_MCP_URL`)
 - Chat page only: Ollama on `:11434` with any chat model
 - Keys (all optional): `TAVILY_API_KEY` / `EXA_API_KEY` add providers;
   `BRAVE_API_KEY` goes live: independent-index search with server-side recency

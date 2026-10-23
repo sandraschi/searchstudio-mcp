@@ -12,6 +12,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
+import httpx
 from starlette.applications import Starlette
 from starlette.responses import JSONResponse
 from starlette.routing import Route
@@ -280,6 +281,40 @@ async def api_fallbacks_save(request):
     return JSONResponse(_fallback_status())
 
 
+async def _sibling_full_text(base_url: str, paper_id: str) -> str:
+    """Fetch sibling full-text markdown. Raises on any failure (caller reports)."""
+    async with httpx.AsyncClient(timeout=httpx.Timeout(30.0, connect=8.0)) as client:
+        resp = await client.get(
+            f"{base_url.rstrip('/')}/api/paper/full-text",
+            params={"paper_id": paper_id},
+        )
+        resp.raise_for_status()
+        return str(resp.json().get("markdown") or "")
+
+
+async def api_paper_full_text(request):
+    """GET /api/paper/full-text?paper_id= : proxy the sibling's markdown.
+
+    Lazy-loads the full text for a paper card. Caps at 100k chars so one
+    giant paper cannot blow up the webapp DOM; the card says when capped.
+    """
+    pid = (request.query_params.get("paper_id") or "").strip()
+    if not pid:
+        return JSONResponse({"success": False, "error": "paper_id is required"}, status_code=400)
+    try:
+        md = await _sibling_full_text(settings.arxiv_mcp_base_url, pid)
+    except Exception as e:
+        return JSONResponse(
+            {"success": False, "paper_id": pid, "error": f"sibling full-text fetch failed: {e}"}
+        )
+    if not md:
+        return JSONResponse(
+            {"success": False, "paper_id": pid, "error": "sibling returned no text"}
+        )
+    capped, text = (True, md[:100_000]) if len(md) > 100_000 else (False, md)
+    return JSONResponse({"success": True, "paper_id": pid, "markdown": text, "truncated": capped})
+
+
 def build_app() -> Starlette:
     _mcp_http = mcp.http_app(path="/")
 
@@ -303,6 +338,7 @@ def build_app() -> Starlette:
         Route("/api/provider-keys/test", api_provider_keys_test, methods=["POST"]),
         Route("/api/settings/fallbacks", api_fallbacks, methods=["GET"]),
         Route("/api/settings/fallbacks", api_fallbacks_save, methods=["POST"]),
+        Route("/api/paper/full-text", api_paper_full_text, methods=["GET"]),
     ]
     app = Starlette(routes=routes, lifespan=_lifespan_all)
     app.mount("/mcp", _mcp_http)

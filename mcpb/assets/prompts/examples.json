@@ -698,5 +698,89 @@
     "prompt": "Wachau valley history plus current visitor info",
     "tool": "searchops",
     "arguments": { "operation": "super_search", "query": "Wachau valley history visitor info", "kinds": "knowledge,serp", "limit": 12 }
+  },
+  {
+    "name": "models-cheapest-tool-call",
+    "description": "Cheapest models that support tool calling",
+    "prompt": "Which models support tool calls, cheapest first?",
+    "tool": "models_lookup",
+    "arguments": { "needs_tool_call": true, "limit": 10 }
+  },
+  {
+    "name": "models-long-context",
+    "description": "High-context models for big codebases",
+    "prompt": "Models with at least 200k context window",
+    "tool": "models_lookup",
+    "arguments": { "min_context": 200000, "limit": 10 }
+  },
+  {
+    "name": "models-open-weights",
+    "description": "Open-weights models for local deployment",
+    "prompt": "Open-weights models I can self-host",
+    "tool": "models_lookup",
+    "arguments": { "open_weights_only": true, "limit": 20 }
+  },
+  {
+    "name": "models-budget-cap",
+    "description": "Models under a price ceiling",
+    "prompt": "Claude models under five dollars per million input tokens",
+    "tool": "models_lookup",
+    "arguments": { "query": "claude", "max_input_cost": 5.0, "limit": 10 }
+  },
+  {
+    "name": "models-agent-pick",
+    "description": "Model pick for an agent loop",
+    "prompt": "Best cheap tool-calling model with big context for an agent",
+    "tool": "models_lookup",
+    "arguments": { "needs_tool_call": true, "min_context": 128000, "limit": 5 }
+  },
+  {
+    "name": "models-refresh-catalog",
+    "description": "Force a catalog refresh before lookup",
+    "prompt": "Refresh the model catalog, then list open-weights models",
+    "tool": "models_lookup",
+    "arguments": { "open_weights_only": true, "refresh": true, "limit": 20 }
+  },
+  {
+    "name": "models-named-search",
+    "description": "Free-text filter on model ids",
+    "prompt": "Anything called qwen in the catalog",
+    "tool": "models_lookup",
+    "arguments": { "query": "qwen", "limit": 10 }
+  },
+  {
+    "name": "models-all-catalog",
+    "description": "Unfiltered catalog glance",
+    "prompt": "What is in the model catalog right now",
+    "tool": "models_lookup",
+    "arguments": { "limit": 20 }
+  },
+  {
+    "name": "brave-second-index",
+    "description": "Brave as the independent second index",
+    "prompt": "Brave-only: Sitagliptin first clinical trial",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "Sitagliptin first clinical trial", "providers": "brave", "limit": 10 }
+  },
+  {
+    "name": "brave-recency-news",
+    "description": "Brave server-side recency filter",
+    "prompt": "This week's AI agent funding news via Brave",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "AI agent startup funding", "providers": "brave,tavily", "time_filter": "week", "limit": 10 }
+  },
+  {
+    "name": "brave-vs-duckduckgo",
+    "description": "Independent index against the scraper",
+    "prompt": "Compare Brave and DuckDuckGo on one query",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "heat pump noise limits Austria", "providers": "brave,duckduckgo", "limit": 10 }
+  },
+  {
+    "name": "keyed-trio-quality",
+    "description": "All three keyed providers on a hard question",
+    "prompt": "Hard question across Tavily, Exa and Brave",
+    "tool": "searchops",
+    "arguments": { "operation": "super_search", "query": "GLP-1 cardiovascular outcome trials comparison", "providers": "tavily,exa,brave", "limit": 15 }
   }
 ]

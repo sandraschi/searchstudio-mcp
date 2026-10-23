@@ -96,6 +96,7 @@ def test_arxiv_maps_merged() -> None:
     assert out[0].server == "arxiv" and out[0].authors == ["A", "B", "C"]
     assert out[0].pdf_url == "https://arxiv.org/pdf/1706.03762"
     assert out[0].categories == ["cs.CL", "cs.LG"] and out[0].snippet == "S"
+    assert out[0].paper_id == "1706.03762"
 
 
 async def test_arxiv_surfaces_backend_errors() -> None:

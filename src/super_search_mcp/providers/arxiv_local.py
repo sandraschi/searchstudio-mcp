@@ -55,6 +55,7 @@ def map_papers(papers: list) -> list[SearchHit]:
                 authors=authors,
                 pdf_url=pdf if isinstance(pdf, str) else None,
                 categories=cats,
+                paper_id=str(pid or ""),
             )
         )
     return hits

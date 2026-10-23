@@ -49,6 +49,7 @@ def map_hits(hits: list) -> list[SearchHit]:
                 snippet=clean_snippet(h.get("snippet") or ""),
                 provider=NAME,
                 kind=KIND,
+                paper_id=arxiv_id,
             )
         )
     return out

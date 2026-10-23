@@ -39,6 +39,7 @@ class SearchHit:
     authors: list = field(default_factory=list)  # author names, max 3
     pdf_url: str | None = None
     categories: list = field(default_factory=list)
+    paper_id: str = ""  # sibling paper id (arXiv id or DOI) for full-text fetch
 
     def to_dict(self) -> dict:
         return asdict(self)

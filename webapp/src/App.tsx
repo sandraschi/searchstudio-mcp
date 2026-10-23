@@ -3,6 +3,7 @@ import AppLayout from "@/components/layout/AppLayout";
 import ActivityPage from "@/pages/ActivityPage";
 import ChatPage from "@/pages/ChatPage";
 import DashboardPage from "@/pages/DashboardPage";
+import GogglesPage from "@/pages/GogglesPage";
 import HelpPage from "@/pages/HelpPage";
 import LogsPage from "@/pages/LogsPage";
 import ProvidersPage from "@/pages/ProvidersPage";
@@ -18,6 +19,7 @@ export default function App() {
         <Route index element={<DashboardPage />} />
         <Route path="search" element={<SearchPage />} />
         <Route path="providers" element={<ProvidersPage />} />
+        <Route path="goggles" element={<GogglesPage />} />
         <Route path="activity" element={<ActivityPage />} />
         <Route path="tools" element={<ToolsPage />} />
         <Route path="skills" element={<SkillsPage />} />

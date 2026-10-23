@@ -1,7 +1,13 @@
 import { Search } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { apiGet, type Hit, type PaperText, type Receipt } from "@/api/client";
+import {
+  apiGet,
+  type Hit,
+  type PaperText,
+  type ProviderInfo,
+  type Receipt,
+} from "@/api/client";
 import { cn } from "@/lib/cn";
 
 const KINDS = [
@@ -181,9 +187,17 @@ export default function SearchPage() {
   ]);
   const [limit, setLimit] = useState(10);
   const [timeFilter, setTimeFilter] = useState("any");
+  const [allProviders, setAllProviders] = useState<ProviderInfo[]>([]);
+  const [providerSel, setProviderSel] = useState<string[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<SearchResponse | null>(null);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    apiGet<{ providers: ProviderInfo[] }>("/api/providers")
+      .then((d) => setAllProviders(d.providers))
+      .catch(() => setAllProviders([]));
+  }, []);
 
   const run = useCallback(
     async (q: string) => {
@@ -191,9 +205,13 @@ export default function SearchPage() {
       if (!text || kinds.length === 0) return;
       setLoading(true);
       setError("");
+      const subset =
+        providerSel !== null && providerSel.length < allProviders.length
+          ? `&providers=${providerSel.map(encodeURIComponent).join(",")}`
+          : "";
       try {
         const data = await apiGet<SearchResponse>(
-          `/api/search?q=${encodeURIComponent(text)}&kinds=${kinds.join(",")}&limit=${limit}&time_filter=${timeFilter}`,
+          `/api/search?q=${encodeURIComponent(text)}&kinds=${kinds.join(",")}&limit=${limit}&time_filter=${timeFilter}${subset}`,
         );
         setResult(data);
       } catch (e) {
@@ -202,7 +220,7 @@ export default function SearchPage() {
         setLoading(false);
       }
     },
-    [kinds, limit, timeFilter],
+    [kinds, limit, timeFilter, providerSel, allProviders.length],
   );
 
   const ranDeepLink = useRef(false);
@@ -292,6 +310,46 @@ export default function SearchPage() {
             <option value="year">Past year</option>
           </select>
         </div>
+        {allProviders.length > 0 && (
+          <div
+            className="flex flex-wrap items-center gap-3 text-xs"
+            data-testid="provider-filter"
+          >
+            <span className="text-zinc-500">Providers:</span>
+            {allProviders.map((p) => {
+              const active =
+                providerSel === null || providerSel.includes(p.name);
+              return (
+                <label
+                  key={p.name}
+                  title={
+                    p.configured ? p.name : `${p.name} (needs key/service)`
+                  }
+                  className="flex cursor-pointer items-center gap-1.5 text-zinc-300"
+                >
+                  <input
+                    type="checkbox"
+                    checked={active}
+                    onChange={() =>
+                      setProviderSel((prev) => {
+                        const all = allProviders.map((x) => x.name);
+                        const cur = prev === null ? all : prev;
+                        const next = cur.includes(p.name)
+                          ? cur.filter((x) => x !== p.name)
+                          : [...cur, p.name];
+                        return next.length === all.length ? null : next;
+                      })
+                    }
+                    className="rounded border-zinc-600"
+                  />
+                  {p.name}
+                  {!p.configured && <span className="text-amber-500">*</span>}
+                </label>
+              );
+            })}
+            <span className="text-zinc-600">(* needs key/service)</span>
+          </div>
+        )}
       </div>
 
       {error && <p className="text-sm text-red-400">{error}</p>}

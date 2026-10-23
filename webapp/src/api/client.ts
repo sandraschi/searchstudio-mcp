@@ -22,6 +22,22 @@ export interface PaperText {
   error?: string;
 }
 
+export interface GoggleEntry {
+  name: string;
+  url: string;
+  notes: string;
+  enabled: boolean;
+  builtin: boolean;
+  description: string;
+  dsl: string;
+}
+
+export interface GogglesResponse {
+  success: boolean;
+  entries: GoggleEntry[];
+  error?: string;
+}
+
 export interface Receipt {
   provider: string;
   kind: string;
@@ -55,3 +71,9 @@ export const apiGet = <T>(path: string): Promise<T> => request<T>(path);
 
 export const apiPost = <T>(path: string, body: unknown): Promise<T> =>
   request<T>(path, { method: "POST", body: JSON.stringify(body) });
+
+export const apiDelete = <T>(path: string, body?: unknown): Promise<T> =>
+  request<T>(path, {
+    method: "DELETE",
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });

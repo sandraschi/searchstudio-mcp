@@ -1,6 +1,7 @@
 import {
   Activity,
   CircleHelp,
+  Glasses,
   GraduationCap,
   HeartPulse,
   LayoutDashboard,
@@ -19,6 +20,7 @@ const NAV = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/search", label: "Search", icon: Search },
   { to: "/providers", label: "Providers", icon: HeartPulse },
+  { to: "/goggles", label: "Goggles", icon: Glasses },
   { to: "/activity", label: "Activity", icon: Activity },
   { to: "/tools", label: "Tools", icon: Wrench },
   { to: "/skills", label: "Skills", icon: GraduationCap },

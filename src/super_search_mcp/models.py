@@ -67,6 +67,9 @@ class ProviderReceipt:
     via: str = ""  # "" = direct request; otherwise the fallback route that
     # produced these hits (e.g. "camoufox" after a bot challenge). Always set
     # when a fallback answered, so a rescued result never looks like a direct one.
+    goggles_applied: list = field(default_factory=list)  # Brave lens URLs
+    # actually sent with this request. Empty = default Brave ranking, so a
+    # curated result never looks like a raw one.
 
     def to_dict(self) -> dict:
         return asdict(self)

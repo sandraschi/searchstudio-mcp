@@ -47,9 +47,10 @@ class BraveProvider:
     name = NAME
     kind = KIND
 
-    def __init__(self, api_key: str = "", timeout_s: float = 20.0):
+    def __init__(self, api_key: str = "", timeout_s: float = 20.0, goggles: list | None = None):
         self._api_key = (api_key or "").strip()
         self._timeout_s = timeout_s
+        self._goggles = [g for g in (goggles or []) if isinstance(g, str) and g]
 
     @property
     def configured(self) -> bool:
@@ -81,6 +82,8 @@ class BraveProvider:
         params: dict = {"q": q, "count": min(max(limit, 1), 20)}
         if filt in FILTER_VALUES:
             params["freshness"] = FILTER_VALUES[filt]
+        if self._goggles:
+            params["goggles"] = list(self._goggles)
         try:
             async with _client(self._timeout_s) as client:
                 resp = await client.get(
@@ -110,4 +113,5 @@ class BraveProvider:
             hits=hits,
             started_ms=started,
             time_filter_applied=filt in FILTER_VALUES,
+            goggles_applied=list(self._goggles),
         )

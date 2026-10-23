@@ -45,6 +45,7 @@ def _receipt(
     retry_in: str = "",
     time_filter_applied: bool = False,
     via: str = "",
+    goggles_applied: list | None = None,
 ) -> ProviderReceipt:
     now_ms = int(time.time() * 1000)
     return ProviderReceipt(
@@ -62,6 +63,7 @@ def _receipt(
         retry_in=retry_in,
         time_filter_applied=time_filter_applied,
         via=via,
+        goggles_applied=list(goggles_applied or []),
     )
 
 

@@ -23,6 +23,9 @@ def build_providers(settings) -> list:
     tavily_key, _ = resolve_key(settings, "TAVILY_API_KEY")
     exa_key, _ = resolve_key(settings, "EXA_API_KEY")
     brave_key, _ = resolve_key(settings, "BRAVE_API_KEY")
+    from ..goggles import enabled_goggle_urls
+
+    goggles = enabled_goggle_urls(settings.data_dir)
     return [
         ArxivMcpProvider(
             base_url=settings.arxiv_mcp_base_url, timeout_s=settings.default_timeout_s
@@ -41,5 +44,5 @@ def build_providers(settings) -> list:
         DuckDuckGoProvider(timeout_s=settings.default_timeout_s, data_dir=settings.data_dir),
         TavilyProvider(api_key=tavily_key, timeout_s=settings.default_timeout_s),
         ExaProvider(api_key=exa_key, timeout_s=settings.default_timeout_s),
-        BraveProvider(api_key=brave_key, timeout_s=settings.default_timeout_s),
+        BraveProvider(api_key=brave_key, timeout_s=settings.default_timeout_s, goggles=goggles),
     ]

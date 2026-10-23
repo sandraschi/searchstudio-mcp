@@ -73,31 +73,24 @@ relevance, not by which provider happened to answer.
 
 ## The arms race
 
-Web search is defended territory. Sites block automated traffic because bots cost
-bandwidth and scrape the content they sell ads against. Expect four walls:
+Web search is defended territory: rate limits, bot-challenge pages (DDG
+anomaly/challenge screens, Cloudflare-style JS barriers and CAPTCHAs), soft
+blocks (HTTP 200 with confident junk), and markup drift. Without an authorized
+breaker we report `blocked`, never zero results; junk is flagged `unrelated`
+and dropped (meaning-based Exa/arxiv-depot exempt); parse misses are our `bug`.
 
-- **Rate limits and refusals** - too fast from one IP and the engine stops answering.
-- **Bot-challenge and barrier pages** - DuckDuckGo shows anomaly/challenge/"not a
-  robot" pages; larger sites sit behind Cloudflare-style barriers (JS checks,
-  CAPTCHAs). Without an authorized breaker we report `blocked`, never zero
-  results. The breaker chain is the authorized answer (bridge render for DDG,
-  FlareSolverr sidecar for IUAM-class Cloudflare); token solvers stay unwired
-  until a flow presents solvable widgets.
-- **Soft blocks** - the nasty one: HTTP 200 with confident junk (the McDonald's
-  pages above). Our literal relevance check flags all-junk answers as `unrelated`
-  and drops them; meaning-based providers (Exa, arxiv-depot) are exempt.
-- **Markup drift** - result HTML changes without notice; a parse miss is reported
-  as our `bug`, not as "no results".
-
-Three labeled moves answer them: **engine rotation** inside OpenSERP-local (google,
-bing, duckduckgo, yandex, ecosia tried in order, junk-serving engines skipped);
-**the authorized breaker chain** for blocks (bridge render, engine operator-set
-via `BROWSER_MCP_ENGINE`, then FlareSolverr when `FLARESOLVERR_URL` is armed;
-every rescue marked `via` with its leg, `blocked` still true); and **paying
-where you prefer not to break anything** (Tavily/Exa keys; Wikipedia courtesy
-UA). Ground rules: breakers run only when authorized, one attempt per leg, no
-silent zeros, no unlabeled bypasses. Evaluated 2026-10-23, not wired: CapSolver,
-2Captcha, CapMonster, nodriver. Full writeup: Help page, Defenses tab.
+"Breaker" is our word for an authorized second try: it fires only after the
+direct fetch fails, every rescue is labeled with its leg, and nothing runs
+unless you switch it on. **Camoufox** (bridge render) is a Firefox fork built
+for undetectability - the challenge detects automation, not humans, so it is
+simply never challenged: nothing is "solved", the puzzle never appears.
+**FlareSolverr** (sidecar) drives undetected Chrome through Cloudflare IUAM
+challenges and returns cleared HTML. Up to a point, by design: passive
+detection is evaded, active puzzles (image CAPTCHAs, checkbox Turnstile) are
+NOT solved - those stay `blocked`, keyed APIs are the paid way through.
+Ground rules: one attempt per leg, no hammering, no silent zeros, no unlabeled
+bypasses. Evaluated 2026-10-23, not wired: CapSolver, 2Captcha, CapMonster,
+nodriver. Full writeup: Help page, Defenses tab.
 
 ## What You Can Do
 

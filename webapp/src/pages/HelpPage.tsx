@@ -733,6 +733,9 @@ export default function HelpPage() {
             modern web. SearchStudio expects them, names them in receipts,
             routes around what it can, runs a breaker where you authorize one,
             and pays (via keyed APIs) where you prefer not to.
+            &quot;Breaker&quot; is our word for an authorized second-try path:
+            it fires only after the direct fetch fails, every rescue is labeled
+            with its leg, and nothing runs unless you switch it on.
           </p>
 
           <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">
@@ -825,18 +828,26 @@ export default function HelpPage() {
                 2. The authorized breaker chain for DuckDuckGo blocks
               </p>
               <p className="mt-1 text-xs leading-relaxed text-zinc-400">
-                Only on the blocked path, legs in order: first a bridge render
+                Only on the blocked path, legs in order. First a bridge render
                 through browser-mcp (engine from BROWSER_MCP_ENGINE: camoufox
-                default, playwright, obscura, auto), then a FlareSolverr session
-                when FLARESOLVERR_URL arms the sidecar. One attempt per leg,
-                bounded by the provider timeout so the fan-out budget stays
-                max(legs). A rescue is reported ok true but blocked true with
-                via naming the leg, so the health ledger still counts the block
-                and the coverage line says e.g. &quot;via camoufox after
+                default, playwright, obscura, auto). Camoufox is a Firefox fork
+                built for undetectability: fingerprint resistance (canvas,
+                audio, fonts), no webdriver flag, human-like behavior. The
+                challenge detects automation, not humans, so an undetectable
+                browser is simply never challenged: nothing is
+                &quot;solved&quot;, the puzzle never appears. Second, when
+                FLARESOLVERR_URL arms the sidecar, a FlareSolverr session:
+                undetected Chrome driven through Cloudflare&apos;s IUAM
+                JavaScript challenges, clearance cookies harvested, cleared HTML
+                returned. What FlareSolverr does not do: interactive CAPTCHAs,
+                current Turnstile checkboxes, IP-reputation bans. One attempt
+                per leg, bounded by the provider timeout so the fan-out budget
+                stays max(legs). A rescue is reported ok true but blocked true
+                with via naming the leg, so the health ledger still counts the
+                block and the coverage line says e.g. &quot;via camoufox after
                 block&quot;. Your machine, your choice: legs run only when the
-                Settings switch is on (hard off when BROWSER_MCP_URL is empty),
-                and every rescue is labeled with its leg in receipt and coverage
-                line. Settings shows the armed legs live.
+                Settings switch is on (hard off when BROWSER_MCP_URL is empty).
+                Settings shows the armed legs live.
               </p>
             </div>
             <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
@@ -868,8 +879,12 @@ export default function HelpPage() {
             health ledger that shows which pipes are dying this week. Ground
             rules: solvers and breakers run only when you authorize them
             (Settings switch, env hard-off); one attempt per leg, no hammering;
-            no silent zeros; no unlabeled bypasses. A wall with no authorized
-            path stays visible in the coverage line until you authorize one or a
+            no silent zeros; no unlabeled bypasses. Up to a point, by design:
+            passive detection (fingerprints, automation flags, JS walls) is
+            evaded by driving a real undetectable browser; active puzzles (image
+            CAPTCHAs, checkbox Turnstile) are NOT solved and stay blocked, with
+            keyed APIs as the paid way through. A wall with no authorized path
+            stays visible in the coverage line until you authorize one or a
             keyed API replaces the scrape. Sharpest knives evaluated 2026-10-23
             and not yet wired: CapSolver (cheapest Turnstile tokens), 2Captcha
             (widest coverage), CapMonster (cheapest reCAPTCHA v2), and nodriver

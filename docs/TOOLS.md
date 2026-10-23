@@ -16,6 +16,8 @@ Parallel fan-out, merged hits, per-provider receipts.
 | `mode` | `balanced` \| `any` | `balanced` | `any` = fastest kind with hits wins (receipts still full) |
 
 Returns `{success, query, total, hits[], receipts[], coverage}` (`mode_winner_kind` in `any` mode).
+Hits carry `title, url, snippet, provider, kind, published, score`; paper hits
+(arxiv-mcp) also carry `server, authors[], pdf_url, categories[]`.
 Failure: `{success: False, error, error_type, suggestions}`.
 Receipts carry `fault_kind` (`rate_limited|slow|blocked|unrelated|down|unconfigured|bug`),
 `user_message`, `what_to_do`, `retry_in` alongside the technical `error`.

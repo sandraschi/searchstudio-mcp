@@ -33,6 +33,12 @@ class SearchHit:
     kind: str = ""  # ProviderKind
     published: str | None = None
     score: float | None = None  # provider-native relevance when available
+    # Paper extras (arxiv-mcp only; empty elsewhere). Optional so every other
+    # provider keeps constructing bare hits; JSON-serializable throughout.
+    server: str = ""  # preprint server key ("arxiv", "biorxiv", ...)
+    authors: list = field(default_factory=list)  # author names, max 3
+    pdf_url: str | None = None
+    categories: list = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return asdict(self)

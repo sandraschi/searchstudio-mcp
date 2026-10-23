@@ -23,9 +23,16 @@ SERVERS = "arxiv,biorxiv,medrxiv,chemrxiv,researchsquare,socarxiv,psyarxiv"
 
 
 def map_papers(papers: list) -> list[SearchHit]:
-    """Map arxiv-mcp merged papers to hits. Pure function (tested)."""
+    """Map arxiv-mcp merged papers to hits. Pure function (tested).
+
+    Keeps the paper extras the sibling already returns (server, authors,
+    pdf_url, categories) so the webapp can render paper cards instead of
+    flat web hits. Snippet is the abstract only; authors ride separately.
+    """
     hits = []
     for p in papers or []:
+        if not isinstance(p, dict):
+            continue
         pid = p.get("paper_id") or ""
         url = p.get("html_url") or (
             f"https://arxiv.org/abs/{pid}" if pid and "/" not in pid else ""
@@ -33,17 +40,21 @@ def map_papers(papers: list) -> list[SearchHit]:
         title = p.get("title") or pid or "untitled"
         if not url:
             continue
-        authors = ", ".join((p.get("authors") or [])[:3])
-        summary = (p.get("summary") or "")[:300]
-        snippet = f"{authors} - {summary}".strip(" -") if authors else summary
+        authors = [str(a) for a in (p.get("authors") or [])[:3]]
+        cats = [str(c) for c in (p.get("categories") or [])[:4]]
+        pdf = p.get("pdf_url") or None
         hits.append(
             SearchHit(
                 title=title,
                 url=url,
-                snippet=snippet,
+                snippet=str(p.get("summary") or "")[:500],
                 provider=NAME,
                 kind=KIND,
                 published=p.get("published"),
+                server=str(p.get("server") or ""),
+                authors=authors,
+                pdf_url=pdf if isinstance(pdf, str) else None,
+                categories=cats,
             )
         )
     return hits

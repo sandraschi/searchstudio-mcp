@@ -82,14 +82,20 @@ def test_arxiv_maps_merged() -> None:
             "paper_id": "1706.03762",
             "title": "Attention",
             "summary": "S",
-            "authors": ["A", "B"],
+            "authors": ["A", "B", "C", "D"],
             "published": "2017-06-12",
             "html_url": "https://arxiv.org/abs/1706.03762",
+            "pdf_url": "https://arxiv.org/pdf/1706.03762",
+            "server": "arxiv",
+            "categories": ["cs.CL", "cs.LG"],
         },
         {"paper_id": "", "title": "", "html_url": ""},
     ]
     out = map_papers(papers)
     assert len(out) == 1 and out[0].url.endswith("/abs/1706.03762")
+    assert out[0].server == "arxiv" and out[0].authors == ["A", "B", "C"]
+    assert out[0].pdf_url == "https://arxiv.org/pdf/1706.03762"
+    assert out[0].categories == ["cs.CL", "cs.LG"] and out[0].snippet == "S"
 
 
 async def test_arxiv_surfaces_backend_errors() -> None:

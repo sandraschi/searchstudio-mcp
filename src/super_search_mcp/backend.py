@@ -408,4 +408,3 @@ def build_app() -> Starlette:
     )
     app.mount("/mcp", _mcp_http)
     return app
-

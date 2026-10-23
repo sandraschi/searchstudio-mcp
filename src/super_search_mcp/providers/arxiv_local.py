@@ -16,6 +16,11 @@ from .base import _client, _now_ms, _receipt
 NAME = "arxiv-mcp"
 KIND = "fleet-local"
 
+# The sibling defaults to 3 servers when `servers` is omitted; we want the
+# full 7-source fan-out: arXiv plus bioRxiv/medRxiv (Cold Spring Harbor API),
+# ChemRxiv/Research Square (Research Square API), SocArXiv/PsyArXiv (OSF API).
+SERVERS = "arxiv,biorxiv,medrxiv,chemrxiv,researchsquare,socarxiv,psyarxiv"
+
 
 def map_papers(papers: list) -> list[SearchHit]:
     """Map arxiv-mcp merged papers to hits. Pure function (tested)."""
@@ -68,7 +73,11 @@ class ArxivMcpProvider:
         # The sibling endpoint takes hours natively: map our vocabulary onto it.
         hours_map = {"day": 24, "week": 24 * 7, "month": 24 * 30, "year": 24 * 365}
         filt = (time_filter or "any").lower()
-        params = {"q": q, "limit": str(min(max(limit, 1), 25))}
+        params = {
+            "q": q,
+            "limit": str(min(max(limit, 1), 25)),
+            "servers": SERVERS,
+        }
         if filt in hours_map:
             params["hours"] = str(hours_map[filt])
         url = self._base_url + "/api/preprints/search?" + _parse.urlencode(params)

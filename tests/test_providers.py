@@ -180,6 +180,44 @@ async def test_arxiv_prefers_structured_faults() -> None:
     assert receipt.what_to_do == "structured todo"
 
 
+async def test_arxiv_requests_all_seven_servers() -> None:
+    from super_search_mcp.providers import arxiv_local
+    from super_search_mcp.providers.arxiv_local import ArxivMcpProvider
+
+    captured: dict = {}
+
+    class _Resp:
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self) -> dict:
+            return {"merged": []}
+
+    class _Client:
+        def __init__(self, *a: object, **k: object) -> None:
+            return None
+
+        async def __aenter__(self) -> "_Client":
+            return self
+
+        async def __aexit__(self, *a: object) -> bool:
+            return False
+
+        async def get(self, url: str) -> _Resp:
+            captured["url"] = url
+            return _Resp()
+
+    real = arxiv_local._client
+    arxiv_local._client = _Client  # type: ignore[assignment]
+    try:
+        await ArxivMcpProvider("http://127.0.0.1:1").search("x")
+    finally:
+        arxiv_local._client = real
+    servers = ("arxiv", "biorxiv", "medrxiv", "chemrxiv", "researchsquare", "socarxiv", "psyarxiv")
+    for srv in servers:
+        assert srv in captured["url"]
+
+
 def test_coverage_line_summarizes_mixed_outcomes() -> None:
     from super_search_mcp.fanout import build_coverage
     from super_search_mcp.models import ProviderReceipt

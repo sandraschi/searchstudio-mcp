@@ -28,3 +28,15 @@ ci: lint type-check test
 
 mcpb-pack:
     pwsh.exe -NoProfile -ExecutionPolicy Bypass -File scripts/mcpb-pack.ps1
+
+# Desktop shell: webapp (Tauri API base baked in) + NSIS bundle.
+# Backend stays separate: start it first (`just serve`), the shell degrades
+# gracefully when :11226 is down.
+tauri-build:
+    cd webapp && $env:VITE_API_BASE = 'http://127.0.0.1:11226'; bun run build
+    cd webapp/src-tauri && cargo tauri build --bundles nsis
+
+# Desktop shell: webapp (Tauri API base) + NSIS bundle. Backend stays separate.
+tauri-build:
+    cd webapp && $env:VITE_API_BASE = 'http://127.0.0.1:11226'; bun run build
+    cd webapp/src-tauri && cargo tauri build --bundles nsis

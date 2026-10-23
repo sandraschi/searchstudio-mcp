@@ -19,6 +19,7 @@ node_modules/
 target/
 native/target/
 webapp/src-tauri/target/
+webapp/src-tauri/gen/
 gen/
 
 # Build output

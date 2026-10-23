@@ -24,7 +24,7 @@ const MANAGED_KEYS = [
   },
   {
     key: "BRAVE_API_KEY",
-    desc: "Brave grounding search: clean snippets (adapter Phase 2)",
+    desc: "Brave independent-index search: clean snippets, server-side recency",
     url: "https://brave.com/search/api",
     urlLabel: "brave.com/search/api",
   },
@@ -215,6 +215,8 @@ function KeyForm() {
 interface FallbackStatus {
   browser_fallback: boolean;
   source: "env" | "file" | "default";
+  engine: string;
+  legs: string[];
 }
 
 function FallbackToggle() {
@@ -258,13 +260,13 @@ function FallbackToggle() {
           data-testid="browser-fallback-toggle"
           className="h-4 w-4 accent-zinc-100"
         />
-        Allow browser fallback (Camoufox) when a provider blocks us
+        Allow authorized breaker legs when a provider blocks us
       </label>
       <p className="text-xs text-zinc-400">
-        When DuckDuckGo shows a bot challenge, SearchStudio retries once in a
-        Camoufox browser via browser-mcp. This gets around the provider's bot
-        check, which the provider may not want. Every rescued result is marked
-        "via camoufox after block" in its receipt.
+        When DuckDuckGo shows a bot challenge, SearchStudio retries in order: a
+        bridge render (engine {status?.engine ?? "camoufox"}) via browser-mcp,
+        then a FlareSolverr session when a sidecar is armed. Your machine, your
+        choice. Every rescued result is marked with its leg in the receipt.
       </p>
       <p
         className="text-xs text-zinc-500"
@@ -277,6 +279,11 @@ function FallbackToggle() {
             : status.source === "file"
               ? "Your choice, saved on the server."
               : "Default (on). Uncheck to turn it off."}
+      </p>
+      <p className="text-xs text-zinc-500" data-testid="breaker-legs">
+        {status === null
+          ? ""
+          : `Legs armed: ${status.legs.join(" + ") || "none"}. Engine is operator-set via BROWSER_MCP_ENGINE; FlareSolverr leg appears when FLARESOLVERR_URL is set.`}
       </p>
       {error && <p className="text-xs text-red-400">{error}</p>}
     </div>

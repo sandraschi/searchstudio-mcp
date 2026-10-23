@@ -189,7 +189,7 @@ async def api_provider_keys_test(request):
     """POST {name}: spend one minimal call to check the key is valid.
 
     Uses the resolved key (env first, stored file second) for a limit=1
-    probe query. Only Tavily/Exa support it (the keyed providers).
+    probe query. Only the keyed search providers support it (Tavily/Exa/Brave).
     """
     from .config import resolve_key
 
@@ -209,6 +209,11 @@ async def api_provider_keys_test(request):
 
         key, source = resolve_key(settings, name)
         provider = ExaProvider(api_key=key)
+    elif name == "BRAVE_API_KEY":
+        from .providers.brave import BraveProvider
+
+        key, source = resolve_key(settings, name)
+        provider = BraveProvider(api_key=key)
     else:
         return JSONResponse(
             {"success": False, "error": f"no live test for {name or '(empty)'}"},
@@ -236,10 +241,17 @@ async def api_provider_keys_test(request):
 
 
 def _fallback_status() -> dict:
+    from . import breakers
     from .config import browser_fallback_allowed
 
     allowed, source = browser_fallback_allowed(settings.data_dir)
-    return {"success": True, "browser_fallback": allowed, "source": source}
+    return {
+        "success": True,
+        "browser_fallback": allowed,
+        "source": source,
+        "engine": breakers.breaker_engine(),
+        "legs": breakers.breaker_legs(),
+    }
 
 
 async def api_fallbacks(request):

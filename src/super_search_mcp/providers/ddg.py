@@ -3,9 +3,10 @@
 Scrapes lite.duckduckgo.com result pages with defensive regex parsing.
 Markup drifts without notice: parse failures degrade to empty-with-receipt,
 never exceptions. Blocking shows up as anomaly/challenge pages or HTTP 202.
-On the blocked path only, one Camoufox render is attempted via the
-browser-mcp bridge before reporting blocked, unless switched off (Settings
-checkbox, or BROWSER_MCP_URL set to empty as an operator hard-off).
+On the blocked path only, the authorized breaker chain runs
+(breakers.run_breakers: bridge render, then FlareSolverr when armed) before
+reporting blocked, unless switched off (Settings checkbox, or BROWSER_MCP_URL
+set to empty as an operator hard-off).
 """
 
 from __future__ import annotations
@@ -14,6 +15,7 @@ import html as _html
 import re
 import urllib.parse as _parse
 
+from ..breakers import LEG_LABELS, run_breakers
 from ..config import browser_fallback_allowed
 from ..models import SearchHit
 from .base import _client, _now_ms, _receipt
@@ -85,46 +87,10 @@ def parse_lite_html(body: str) -> list[tuple[str, str, str]]:
     return out
 
 
-async def _stealth_fallback(ddg_url: str, limit: int, timeout_s: float) -> list[SearchHit]:
-    """Render the DDG lite page in browser-mcp (Camoufox) when httpx is challenged.
-
-    Env: BROWSER_MCP_URL (default http://127.0.0.1:10780, empty disables).
-    Returns [] on any failure so the caller keeps its honest blocked receipt.
-    Only fires on the blocked path - normal queries never pay browser cost.
-    Bounded by the provider's own timeout so the fan-out budget stays
-    max(legs) (EXTERNAL_FAULT_TRANSPARENCY retry rule 3).
-    """
-    import os
-
-    base = os.environ.get("BROWSER_MCP_URL", "http://127.0.0.1:10780").strip().rstrip("/")
-    if not base:
-        return []
-    try:
-        async with _client(timeout_s) as client:
-            resp = await client.post(
-                f"{base}/api/fetch",
-                json={"url": ddg_url, "engine": "camoufox", "include_html": True},
-            )
-            resp.raise_for_status()
-            data = resp.json()
-    except Exception:
-        return []
-    if not data.get("success") or not data.get("html"):
-        return []
-    try:
-        triples = parse_lite_html(data["html"])
-    except Exception:
-        return []
-    return [
-        SearchHit(title=t, url=u, snippet=s, provider=NAME, kind=KIND)
-        for t, u, s in triples[: max(limit, 1)]
-    ]
-
-
 def _fallback_note(allowed: bool, source: str) -> str:
-    """Why the browser fallback did not rescue a blocked search (receipt text)."""
+    """Why the breakers did not rescue a blocked search (receipt text)."""
     if allowed:
-        return " The browser fallback was tried and did not help."
+        return " The authorized breaker legs were tried and did not help."
     if source == "env":
         return " Browser fallback is off (BROWSER_MCP_URL is empty)."
     return " Browser fallback is off in Settings."
@@ -173,25 +139,32 @@ class DuckDuckGoProvider:
         body = resp.text or ""
         if resp.status_code != 200 or any(m in body for m in _BLOCKED_MARKERS):
             allowed, source = browser_fallback_allowed(self._data_dir)
-            stealth_hits = (
-                await _stealth_fallback(url, limit=limit, timeout_s=self._timeout_s)
-                if allowed
-                else []
-            )
-            if stealth_hits:
+            breaker_hits: list[SearchHit] = []
+            via = ""
+            if allowed:
+                breaker_hits, via = await run_breakers(
+                    url,
+                    parse_lite_html,
+                    NAME,
+                    KIND,
+                    limit=limit,
+                    timeout_s=self._timeout_s,
+                )
+            if breaker_hits:
                 # Rescued, not direct: keep blocked=True so the health ledger
                 # still counts the block, and say which route answered.
-                return stealth_hits, _receipt(
+                label = LEG_LABELS.get(via, via)
+                return breaker_hits, _receipt(
                     NAME,
                     KIND,
                     ok=True,
-                    hits=stealth_hits,
+                    hits=breaker_hits,
                     started_ms=started,
                     blocked=True,
-                    via="camoufox",
+                    via=via,
                     user_message=(
                         "DuckDuckGo blocked direct access; these results came "
-                        "through the Camoufox browser fallback."
+                        f"through the {label} (authorized breaker fallback)."
                     ),
                 )
             return [], _receipt(

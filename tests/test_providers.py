@@ -235,6 +235,7 @@ async def _ddg_blocked_search(post_json: dict | None, data_dir: str) -> tuple[li
 
     data_dir is a per-test temp dir so the real data/preferences.json is never read.
     """
+    from super_search_mcp import breakers as _breakers
     from super_search_mcp.providers import ddg
 
     class _Resp:
@@ -268,12 +269,20 @@ async def _ddg_blocked_search(post_json: dict | None, data_dir: str) -> tuple[li
             assert json["engine"] == "camoufox"
             return _Resp(200, data=post_json)
 
+    import os
+
     real = ddg._client
+    real_b = _breakers._client
+    saved_flare = os.environ.pop("FLARESOLVERR_URL", None)
     ddg._client = _Client  # type: ignore[assignment]
+    _breakers._client = _Client  # type: ignore[assignment]
     try:
         return await ddg.DuckDuckGoProvider(data_dir=data_dir).search("x")
     finally:
         ddg._client = real
+        _breakers._client = real_b
+        if saved_flare is not None:
+            os.environ["FLARESOLVERR_URL"] = saved_flare
 
 
 async def test_ddg_camoufox_rescue_is_reported_not_hidden(monkeypatch, tmp_path) -> None:

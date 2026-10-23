@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "SearchStudio desktop shell: window + external-link opener.",
+  "windows": ["main"],
+  "permissions": ["opener:default"]
+}

@@ -26,12 +26,18 @@ Install these if you don't have them already:
 > (`ollama pull qwen3:8b` or any chat model). No cloud fallback in this repo,
 > so a weak PC without a GPU can use every search feature but should skip Chat.
 
-## Option A - Drag and Drop (Recommended, pending first release)
+## Option A - One-click install (Recommended)
 
-> No GitHub releases exist yet - this path activates with v0.1.0. Until then, use Option C/D.
+One-liner (Claude Desktop on Windows only):
+
+```powershell
+irm https://github.com/sandraschi/searchstudio-mcp/releases/latest/download/install.ps1 | iex
+```
+
+Or manually:
 
 1. Go to [Releases](https://github.com/sandraschi/searchstudio-mcp/releases/latest)
-2. Download `searchstudio-mcp-v{version}.mcpb`
+2. Download `searchstudio-mcp.mcpb` (stable name, always the latest)
 3. Open Claude Desktop → drag the file onto the window
    *Or*: Settings → MCP Servers → Install from file
 

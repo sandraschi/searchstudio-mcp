@@ -133,12 +133,18 @@ Docker. Provider names and setup are explained in [docs/ONBOARDING.md](docs/ONBO
 
 ## Install
 
-No release has been published yet; a one-click Claude Desktop bundle (`.mcpb`) is
-planned. The `.mcpb` registers the MCP server in Claude Desktop only and does
-not install the webapp (infrastructure tier: no NSIS installer, webapp is for
-diagnostics). Until then, follow [INSTALL.md](INSTALL.md) to set it up from
-source. No API keys are needed to start: OpenSERP (with Docker), DuckDuckGo and
-Wikipedia work without any account.
+Claude Desktop (Windows) one-click:
+
+```powershell
+irm https://github.com/sandraschi/searchstudio-mcp/releases/latest/download/install.ps1 | iex
+```
+
+The `.mcpb` registers the MCP server in Claude Desktop only and does not
+install the webapp (infrastructure tier: no NSIS installer, webapp is for
+diagnostics). Other clients: [INSTALL.md](INSTALL.md) Option C
+(`uvx --from git+https://github.com/sandraschi/searchstudio-mcp` style
+manual config). No API keys are needed to start: OpenSERP (with Docker),
+DuckDuckGo and Wikipedia work without any account.
 
 ## Example Prompts
 

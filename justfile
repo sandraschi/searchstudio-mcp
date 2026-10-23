@@ -35,8 +35,3 @@ mcpb-pack:
 tauri-build:
     cd webapp && $env:VITE_API_BASE = 'http://127.0.0.1:11226'; bun run build
     cd webapp/src-tauri && cargo tauri build --bundles nsis
-
-# Desktop shell: webapp (Tauri API base) + NSIS bundle. Backend stays separate.
-tauri-build:
-    cd webapp && $env:VITE_API_BASE = 'http://127.0.0.1:11226'; bun run build
-    cd webapp/src-tauri && cargo tauri build --bundles nsis

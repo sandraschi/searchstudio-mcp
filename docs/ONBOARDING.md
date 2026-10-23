@@ -134,9 +134,10 @@ words, an engine sends back ranked links. Receipts group these as "Web".
 - **Goggles** - Brave-only ranking lenses (`/goggles` page, no key of their
   own): prepared sets (no-Pinterest, tech-blogs boost, docs-first, academic
   boost, no-AI-farms) plus your own entries and a DIY editor. A lens takes
-  effect only with a public URL pasted in (published via brave.com/goggles, a
-  gist, any raw file URL); enabling without one is refused. Enabled lenses
-  ride every Brave search and are named in the receipt (`goggles_applied`).
+  effect only with a public URL pasted in: publish via brave.com/goggles
+  (community) or a public gist (paste DSL, name it *.goggle, copy the Raw
+  URL). Enabling without one is refused. Prove it: search with Brave on and
+  look for `lenses: N` on the Brave receipt line (hover for the URLs).
 
 ### Knowledge
 

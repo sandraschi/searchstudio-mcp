@@ -7,7 +7,9 @@ who returned junk, and how long each took. When a pipe dies, it says so. It neve
 quietly hands you nothing, or nonsense, and calls it a result.
 
 [![Status](https://img.shields.io/badge/status-early%20development-orange)]()
+[![Release](https://img.shields.io/github/v/release/sandraschi/searchstudio-mcp)](https://github.com/sandraschi/searchstudio-mcp/releases/latest)
 [![FastMCP](https://img.shields.io/badge/FastMCP-%3E%3D3.4.4-green)]()
+[![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ## Contents

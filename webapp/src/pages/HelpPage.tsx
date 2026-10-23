@@ -180,7 +180,7 @@ const FAQS: Array<[string, string]> = [
   ],
   [
     "How do Goggles work?",
-    "Goggles are Brave ranking lenses ($boost/$downrank/$discard rules) applied server-side per request. Pick prepared ones, add your own public URLs, or compose in the editor on the Goggles page - then enable. Enabled lenses ride every Brave search and are named in the receipt (goggles_applied). No Brave key, no effect: the page says so instead of pretending.",
+    "Goggles are Brave ranking lenses ($boost/$downrank/$discard rules) applied server-side per request. Pick prepared ones, add your own public URLs, or compose in the editor on the Goggles page - then enable. Publishing is the step people miss: Brave fetches your file, so it needs a public URL (gist Raw link or a published brave.com/goggles URL) - local files cannot work. Verify on any Brave search: the receipt line shows lenses: N (hover for URLs). No Brave key, no effect: the page says so instead of pretending.",
   ],
   [
     "What can I do with a paper hit?",

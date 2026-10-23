@@ -58,7 +58,15 @@ export interface ProviderInfo {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const resp = await fetch(path, {
+  // VITE_API_BASE is empty in dev (Vite proxies /api + /skill to :11226).
+  // Tauri production builds set it to http://127.0.0.1:11226 since there is
+  // no dev proxy inside the desktop shell; the backend CORS-allows it.
+  const base = import.meta.env.VITE_API_BASE ?? "";
+  const url =
+    path.startsWith("/api/") || path.startsWith("/skill/")
+      ? `${base}${path}`
+      : path;
+  const resp = await fetch(url, {
     headers: { "Content-Type": "application/json" },
     ...init,
   });

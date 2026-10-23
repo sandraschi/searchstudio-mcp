@@ -14,6 +14,7 @@ from typing import Any
 
 import httpx
 from starlette.applications import Starlette
+from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 from starlette.routing import Route
 
@@ -393,5 +394,18 @@ def build_app() -> Starlette:
         Route("/api/goggles", api_goggles_delete, methods=["DELETE"]),
     ]
     app = Starlette(routes=routes, lifespan=_lifespan_all)
+    # Tauri desktop shell: production builds call the backend directly (no
+    # Vite proxy inside the shell), so the Tauri origins must be allowed.
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[
+            "tauri://localhost",
+            "http://tauri.localhost",
+            "https://tauri.localhost",
+        ],
+        allow_methods=["GET", "POST", "DELETE"],
+        allow_headers=["*"],
+    )
     app.mount("/mcp", _mcp_http)
     return app
+

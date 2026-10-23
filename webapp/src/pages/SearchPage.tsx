@@ -1,7 +1,7 @@
 import { Search } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { apiGet, type Hit, type Receipt } from "@/api/client";
+import { apiGet, type Hit, type PaperText, type Receipt } from "@/api/client";
 import { cn } from "@/lib/cn";
 
 const KINDS = [
@@ -9,6 +9,159 @@ const KINDS = [
   { id: "knowledge", label: "Knowledge" },
   { id: "serp", label: "Web" },
 ];
+
+const FULLTEXT_DISPLAY_LIMIT = 12000;
+
+function PaperHitCard({ hit }: { hit: Hit }) {
+  // Title click toggles the abstract (stays in search context); full text
+  // loads lazily behind its own button via the backend proxy.
+  const [abstractOpen, setAbstractOpen] = useState(false);
+  const [textOpen, setTextOpen] = useState(false);
+  const [textState, setTextState] = useState<
+    "idle" | "loading" | "done" | "error"
+  >("idle");
+  const [markdown, setMarkdown] = useState("");
+  const [textError, setTextError] = useState("");
+  const [textTruncated, setTextTruncated] = useState(false);
+
+  const loadFullText = useCallback(async () => {
+    if (!hit.paper_id) return;
+    if (textState === "done") {
+      setTextOpen((v) => !v);
+      return;
+    }
+    setTextOpen(true);
+    setTextState("loading");
+    setTextError("");
+    try {
+      const res = await apiGet<PaperText>(
+        `/api/paper/full-text?paper_id=${encodeURIComponent(hit.paper_id)}`,
+      );
+      if (!res.success) {
+        setTextState("error");
+        setTextError(res.error || "No text returned.");
+        return;
+      }
+      setMarkdown(res.markdown ?? "");
+      setTextTruncated(!!res.truncated);
+      setTextState("done");
+    } catch (e) {
+      setTextState("error");
+      setTextError(e instanceof Error ? e.message : "Fetch failed.");
+    }
+  }, [hit.paper_id, textState]);
+
+  const shown =
+    markdown.length > FULLTEXT_DISPLAY_LIMIT
+      ? `${markdown.slice(0, FULLTEXT_DISPLAY_LIMIT)}\n\n[cut for display - open in arxiv-mcp for the rest]`
+      : markdown;
+
+  return (
+    <div
+      data-testid="paper-hit"
+      className="block rounded-xl border border-zinc-800 bg-zinc-900/50 p-3"
+    >
+      <button
+        type="button"
+        onClick={() => setAbstractOpen((v) => !v)}
+        data-testid="paper-abstract-toggle"
+        title="Click to show/hide the abstract"
+        className="block w-full text-left text-sm font-medium text-zinc-100 hover:underline"
+      >
+        <span className="mr-1 inline-block w-3 text-zinc-500">
+          {abstractOpen ? "-" : "+"}
+        </span>
+        {hit.title}
+      </button>
+      <p className="mt-1 flex flex-wrap gap-1.5 text-[11px] text-zinc-500">
+        {hit.server && (
+          <span className="rounded bg-amber-900/40 px-1.5 py-0.5 text-amber-300">
+            {hit.server}
+          </span>
+        )}
+        <span className="rounded bg-zinc-800 px-1.5 py-0.5">
+          {hit.provider}
+        </span>
+        {hit.published && <span>{hit.published}</span>}
+        {hit.categories && hit.categories.length > 0 && (
+          <span className="truncate">{hit.categories.join(", ")}</span>
+        )}
+      </p>
+      {hit.authors && hit.authors.length > 0 && (
+        <p className="mt-1 text-xs text-zinc-400">{hit.authors.join(", ")}</p>
+      )}
+      {abstractOpen && hit.snippet && (
+        <p
+          data-testid="paper-abstract"
+          className="mt-1 text-xs leading-relaxed text-zinc-400"
+        >
+          {hit.snippet}
+        </p>
+      )}
+      <p className="mt-1.5 flex flex-wrap gap-3 text-[11px]">
+        <button
+          type="button"
+          onClick={() => setAbstractOpen((v) => !v)}
+          className="text-primary hover:underline"
+        >
+          Abstract
+        </button>
+        {hit.paper_id && (
+          <button
+            type="button"
+            onClick={loadFullText}
+            data-testid="paper-fulltext-toggle"
+            className="text-primary hover:underline"
+          >
+            {textState === "loading" ? "Loading…" : "Full text"}
+          </button>
+        )}
+        {hit.pdf_url && (
+          <a
+            href={hit.pdf_url}
+            target="_blank"
+            rel="noreferrer"
+            className="text-primary hover:underline"
+          >
+            PDF
+          </a>
+        )}
+        <a
+          href={hit.url}
+          target="_blank"
+          rel="noreferrer"
+          className="text-primary hover:underline"
+        >
+          Paper page
+        </a>
+        <a
+          href="http://127.0.0.1:10771/search"
+          target="_blank"
+          rel="noreferrer"
+          className="text-primary hover:underline"
+          title="Open the sibling arxiv-mcp webapp search"
+        >
+          Open in arxiv-mcp
+        </a>
+      </p>
+      {textOpen && textState === "loading" && (
+        <p className="mt-1 text-[11px] text-zinc-500">Fetching full text…</p>
+      )}
+      {textOpen && textState === "error" && (
+        <p className="mt-1 text-[11px] text-red-400">{textError}</p>
+      )}
+      {textOpen && textState === "done" && (
+        <pre
+          data-testid="paper-fulltext"
+          className="mt-1 max-h-96 overflow-auto whitespace-pre-wrap rounded-lg border border-zinc-800 bg-zinc-950 p-2 text-[11px] leading-relaxed text-zinc-300"
+        >
+          {shown}
+          {textTruncated && "\n\n[backend capped at 100k chars]"}
+        </pre>
+      )}
+    </div>
+  );
+}
 
 interface SearchResponse {
   success: boolean;
@@ -184,82 +337,7 @@ export default function SearchPage() {
                   </a>
                 );
               }
-              return (
-                <div
-                  key={`${h.provider}:${h.url}`}
-                  data-testid="paper-hit"
-                  className="block rounded-xl border border-zinc-800 bg-zinc-900/50 p-3"
-                >
-                  <a
-                    href={h.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-sm font-medium text-zinc-100 hover:underline"
-                  >
-                    {h.title}
-                  </a>
-                  <p className="mt-1 flex flex-wrap gap-1.5 text-[11px] text-zinc-500">
-                    {h.server && (
-                      <span className="rounded bg-amber-900/40 px-1.5 py-0.5 text-amber-300">
-                        {h.server}
-                      </span>
-                    )}
-                    <span className="rounded bg-zinc-800 px-1.5 py-0.5">
-                      {h.provider}
-                    </span>
-                    {h.published && <span>{h.published}</span>}
-                    {h.categories && h.categories.length > 0 && (
-                      <span className="truncate">
-                        {h.categories.join(", ")}
-                      </span>
-                    )}
-                  </p>
-                  {h.authors && h.authors.length > 0 && (
-                    <p className="mt-1 text-xs text-zinc-400">
-                      {h.authors.join(", ")}
-                    </p>
-                  )}
-                  {h.snippet && (
-                    <details className="mt-1">
-                      <summary className="cursor-pointer text-[11px] text-zinc-500">
-                        Abstract
-                      </summary>
-                      <p className="mt-0.5 text-xs leading-relaxed text-zinc-400">
-                        {h.snippet}
-                      </p>
-                    </details>
-                  )}
-                  <p className="mt-1.5 flex flex-wrap gap-3 text-[11px]">
-                    <a
-                      href={h.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-primary hover:underline"
-                    >
-                      Paper page
-                    </a>
-                    {h.pdf_url && (
-                      <a
-                        href={h.pdf_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-primary hover:underline"
-                      >
-                        PDF
-                      </a>
-                    )}
-                    <a
-                      href="http://127.0.0.1:10771/search"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-primary hover:underline"
-                      title="Open the sibling arxiv-mcp webapp search"
-                    >
-                      Open in arxiv-mcp
-                    </a>
-                  </p>
-                </div>
-              );
+              return <PaperHitCard key={`${h.provider}:${h.url}`} hit={h} />;
             })}
             {result.hits.length === 0 && (
               <p className="text-sm text-zinc-500">

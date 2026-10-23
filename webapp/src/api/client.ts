@@ -11,6 +11,15 @@ export interface Hit {
   authors?: string[];
   pdf_url?: string | null;
   categories?: string[];
+  paper_id?: string;
+}
+
+export interface PaperText {
+  success: boolean;
+  paper_id?: string;
+  markdown?: string;
+  truncated?: boolean;
+  error?: string;
 }
 
 export interface Receipt {

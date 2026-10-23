@@ -1,6 +1,6 @@
 # Changelog - SearchStudio
 
-## [Unreleased]
+## [0.2.0] - 2026-10-23
 
 ### Added
 - Paper cards in search: server badge, authors, expandable abstract, lazy

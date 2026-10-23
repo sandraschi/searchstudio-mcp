@@ -1,7 +1,7 @@
 {
   "manifest_version": "0.2",
   "name": "searchstudio-mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Super search is all you need: parallel multi-provider fan-out with health receipts",
   "author": { "name": "Sandra Schipal" },
   "server": {

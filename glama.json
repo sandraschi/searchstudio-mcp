@@ -2,7 +2,7 @@
   "name": "searchstudio-mcp",
   "displayName": "SearchStudio",
   "description": "Super search is all you need: parallel fan-out across web, knowledge, and fleet-local providers with health receipts.",
-  "version": "0.1.0",
+    "version": "0.2.0",
   "author": "sandraschi",
   "license": "MIT",
   "homepage": "https://github.com/sandraschi/searchstudio-mcp",

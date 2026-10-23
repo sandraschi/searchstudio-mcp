@@ -1,6 +1,6 @@
 [project]
 name = "super-search-mcp"
-version = "0.1.0"
+version = "0.2.0"
 description = "SearchStudio: parallel multi-provider fan-out (web, knowledge, fleet-local) with health receipts"
 readme = "README.md"
 requires-python = ">=3.11"

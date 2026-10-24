@@ -6,7 +6,6 @@ import {
   apiPost,
   type GoggleEntry,
   type GogglesResponse,
-  type ProviderInfo,
 } from "@/api/client";
 
 const DIY_TEMPLATE = `! name: My lens
@@ -42,11 +41,10 @@ export default function GogglesPage() {
     try {
       const [g, p] = await Promise.all([
         apiGet<GogglesResponse>("/api/goggles"),
-        apiGet<{ providers: ProviderInfo[] }>("/api/providers"),
+        apiGet<{ configured?: Record<string, boolean> }>("/api/providers"),
       ]);
       setEntries(g.entries);
-      const brave = p.providers.find((x) => x.name === "brave");
-      setBraveOn(brave ? brave.configured : false);
+      setBraveOn(!!p.configured?.brave);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Load failed.");
     } finally {

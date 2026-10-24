@@ -194,8 +194,18 @@ export default function SearchPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    apiGet<{ providers: ProviderInfo[] }>("/api/providers")
-      .then((d) => setAllProviders(d.providers))
+    // /api/providers returns {scoreboard, configured: {name: bool}} - the
+    // provider list is the configured map's keys (same source as ProvidersPage).
+    apiGet<{ configured?: Record<string, boolean> }>("/api/providers")
+      .then((d) =>
+        setAllProviders(
+          Object.entries(d.configured ?? {}).map(([name, configured]) => ({
+            name,
+            kind: "",
+            configured: !!configured,
+          })),
+        ),
+      )
       .catch(() => setAllProviders([]));
   }, []);
 

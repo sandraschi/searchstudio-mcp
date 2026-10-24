@@ -1,7 +1,8 @@
 import {
   Activity,
   CircleHelp,
-  Glasses,
+  Crosshair,
+  Globe,
   GraduationCap,
   HeartPulse,
   LayoutDashboard,
@@ -9,6 +10,7 @@ import {
   ScrollText,
   Search,
   Settings,
+  Sparkles,
   Wrench,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -20,7 +22,9 @@ const NAV = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/search", label: "Search", icon: Search },
   { to: "/providers", label: "Providers", icon: HeartPulse },
-  { to: "/goggles", label: "Goggles", icon: Glasses },
+  { to: "/brave", label: "Brave", icon: Globe },
+  { to: "/exa", label: "Exa", icon: Sparkles },
+  { to: "/tavily", label: "Tavily", icon: Crosshair },
   { to: "/activity", label: "Activity", icon: Activity },
   { to: "/tools", label: "Tools", icon: Wrench },
   { to: "/skills", label: "Skills", icon: GraduationCap },

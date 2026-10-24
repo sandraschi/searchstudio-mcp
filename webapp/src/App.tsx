@@ -3,9 +3,9 @@ import AppLayout from "@/components/layout/AppLayout";
 import ActivityPage from "@/pages/ActivityPage";
 import ChatPage from "@/pages/ChatPage";
 import DashboardPage from "@/pages/DashboardPage";
-import GogglesPage from "@/pages/GogglesPage";
 import HelpPage from "@/pages/HelpPage";
 import LogsPage from "@/pages/LogsPage";
+import ProviderPage from "@/pages/ProviderPage";
 import ProvidersPage from "@/pages/ProvidersPage";
 import SearchPage from "@/pages/SearchPage";
 import SettingsPage from "@/pages/SettingsPage";
@@ -19,7 +19,9 @@ export default function App() {
         <Route index element={<DashboardPage />} />
         <Route path="search" element={<SearchPage />} />
         <Route path="providers" element={<ProvidersPage />} />
-        <Route path="goggles" element={<GogglesPage />} />
+        <Route path="brave" element={<ProviderPage name="brave" />} />
+        <Route path="exa" element={<ProviderPage name="exa" />} />
+        <Route path="tavily" element={<ProviderPage name="tavily" />} />
         <Route path="activity" element={<ActivityPage />} />
         <Route path="tools" element={<ToolsPage />} />
         <Route path="skills" element={<SkillsPage />} />

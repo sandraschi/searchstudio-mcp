@@ -210,14 +210,16 @@ export default function SearchPage() {
   }, []);
 
   const run = useCallback(
-    async (q: string) => {
+    async (q: string, providersOverride?: string[] | null) => {
       const text = q.trim();
       if (!text || kinds.length === 0) return;
       setLoading(true);
       setError("");
+      const sel =
+        providersOverride !== undefined ? providersOverride : providerSel;
       const subset =
-        providerSel !== null && providerSel.length < allProviders.length
-          ? `&providers=${providerSel.map(encodeURIComponent).join(",")}`
+        sel !== null && sel.length < allProviders.length
+          ? `&providers=${sel.map(encodeURIComponent).join(",")}`
           : "";
       try {
         const data = await apiGet<SearchResponse>(
@@ -239,9 +241,15 @@ export default function SearchPage() {
     if (ranDeepLink.current) return;
     ranDeepLink.current = true;
     const q = params.get("q");
+    const prov = params
+      .get("providers")
+      ?.split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (prov && prov.length > 0) setProviderSel(prov);
     if (q) {
       setQuery(q);
-      run(q);
+      run(q, prov && prov.length > 0 ? prov : undefined);
     }
   }, [params, run]);
 

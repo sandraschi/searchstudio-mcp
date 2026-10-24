@@ -80,7 +80,7 @@ CapSolver, 2Captcha, CapMonster, nodriver. Full writeup: Help page, Defenses tab
   preprints across 7 servers with one query, in parallel
 - Read paper hits as cards: title toggles the abstract, Full text loads inline,
   PDF when available, handoff to the arxiv-mcp webapp for depot save and citations
-- Curate Brave ranking with Goggles: prepared lenses, your own URLs, DIY editor
+- Curate Brave ranking with Goggles on the Brave page: prepared lenses, your own URLs, DIY editor
 - Read the coverage line and receipts: answered, blocked, unrelated, down, or
   missing a key - every provider, every time
 - Restrict to recent results (day/week/month/year); providers that cannot filter

@@ -131,7 +131,7 @@ words, an engine sends back ranked links. Receipts group these as "Web".
   counterpart to Tavily: a second index, not a second opinion. Plans: about
   $5 per 1,000 queries with a small monthly free credit. Key goes in
   `BRAVE_API_KEY`; the Settings Test button spends one `count=1` probe.
-- **Goggles** - Brave-only ranking lenses (`/goggles` page, no key of their
+- **Goggles** - Brave-only ranking lenses (Brave page, lenses section; no key of their
   own): prepared sets (no-Pinterest, tech-blogs boost, docs-first, academic
   boost, no-AI-farms) plus your own entries and a DIY editor. A lens takes
   effect only with a public URL pasted in: publish via brave.com/goggles

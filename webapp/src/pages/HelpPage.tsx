@@ -58,8 +58,16 @@ const PAGES: Array<[string, string]> = [
     "Rolling health scoreboard per provider: attempts, success rate, latency, blocks.",
   ],
   [
-    "Goggles",
-    "Brave ranking lenses: prepared sets, your own entries, DIY editor, export/import. Enabled lenses ride every Brave search and are named in the receipt.",
+    "Brave",
+    "Brave provider page: key status, call mechanics, cost, and ranking lenses (prepared sets, your own entries, DIY editor, export/import). Enabled lenses ride every Brave search and are named in the receipt.",
+  ],
+  [
+    "Exa",
+    "Exa provider page: neural search mechanics, cost, when to use it, receipt reading.",
+  ],
+  [
+    "Tavily",
+    "Tavily provider page: ranked search mechanics, cost, when to use it, receipt reading.",
   ],
   ["Activity", "7-day view of the SQLite attempt ledger."],
   [
@@ -180,7 +188,7 @@ const FAQS: Array<[string, string]> = [
   ],
   [
     "How do Goggles work?",
-    "Goggles are Brave ranking lenses ($boost/$downrank/$discard rules) applied server-side per request. Pick prepared ones, add your own public URLs, or compose in the editor on the Goggles page - then enable. Publishing is the step people miss: Brave fetches your file, so it needs a public URL (gist Raw link or a published brave.com/goggles URL) - local files cannot work. Verify on any Brave search: the receipt line shows lenses: N (hover for URLs). No Brave key, no effect: the page says so instead of pretending.",
+    "Goggles are Brave ranking lenses ($boost/$downrank/$discard rules) applied server-side per request. Pick prepared ones, add your own public URLs, or compose in the editor on the Brave page - then enable. Publishing is the step people miss: Brave fetches your file, so it needs a public URL (gist Raw link or a published brave.com/goggles URL) - local files cannot work. Verify on any Brave search: the receipt line shows lenses: N (hover for URLs). No Brave key, no effect: the page says so instead of pretending.",
   ],
   [
     "What can I do with a paper hit?",
@@ -246,7 +254,7 @@ const PROVIDERS: Array<{
   },
   {
     name: "Brave",
-    what: "Independent-index search API (no Google/Bing dependency): clean snippets with server-side recency (day/week/month/year), plus Goggles ranking lenses from the Goggles page. The raw-ranked counterpart to Tavily when you want a second index, not a second opinion. About $5 per 1,000 queries with a small monthly free credit.",
+    what: "Independent-index search API (no Google/Bing dependency): clean snippets with server-side recency (day/week/month/year), plus ranking lenses on the Brave page. The raw-ranked counterpart to Tavily when you want a second index, not a second opinion. About $5 per 1,000 queries with a small monthly free credit.",
     key: "BRAVE_API_KEY",
     url: "https://brave.com/search/api",
   },

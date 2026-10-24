@@ -78,11 +78,11 @@ without a key.
 to Tavily: a second index, not a second opinion. Same declared-stub
 contract without a key (`BRAVE_API_KEY`).
 
-### goggles — your ranking lens on Brave
+### goggles — your ranking lens on Brave (Brave page, lenses section)
 
 Goggles are Brave's per-request reranking rules (`$boost`, `$downrank`,
 `$discard` by URL pattern), applied server-side. Managed on the webapp
-Goggles page: prepared lenses with ready-to-publish rule text, your own
+Brave page: prepared lenses with ready-to-publish rule text, your own
 entries (name + public URL + notes, full CRUD), a DIY editor with download,
 and JSON export/import. A lens activates only with a public https URL
 (published via brave.com/goggles, a gist, any raw file URL); enabling

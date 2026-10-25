@@ -180,6 +180,15 @@ zero; see [docs/ONBOARDING.md](docs/ONBOARDING.md) for setup):
 - Keys (all optional): `TAVILY_API_KEY` / `EXA_API_KEY` add providers;
   `BRAVE_API_KEY` goes live: independent-index search with server-side recency
 
+## Bugs
+
+Bug reports and feature requests go to [GitHub Issues](../../issues) using the
+issue forms (a bug report needs version + reproducer, no exceptions).
+GitHub is also where PRs happen; questions belong in
+[Discussions](../../discussions). Never post secrets or API keys — redact and
+rotate first; security-sensitive reports go through a
+[private advisory](../../security/advisories/new).
+
 ## License
 
 MIT - see [LICENSE](LICENSE).

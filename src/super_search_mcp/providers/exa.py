@@ -91,13 +91,18 @@ class ExaProvider:
                 resp.raise_for_status()
                 data = resp.json()
         except Exception as e:
+            status = getattr(getattr(e, "response", None), "status_code", None)
+            if status:
+                short = f"HTTP {status} from exa"
+            else:
+                short = f"exa failed ({type(e).__name__})"
             return [], _receipt(
                 NAME,
                 KIND,
                 ok=False,
                 hits=[],
                 started_ms=started,
-                error=f"Exa request failed: {e}",
+                error=short,
                 fault_kind="down",
                 user_message="Exa request failed.",
                 what_to_do="Check the key and try again; other providers already ran.",

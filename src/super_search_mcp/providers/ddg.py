@@ -125,13 +125,14 @@ class DuckDuckGoProvider:
             async with _client(self._timeout_s) as client:
                 resp = await client.get(url)
         except Exception as e:
+            short = f"duckduckgo request failed ({type(e).__name__})"
             return [], _receipt(
                 NAME,
                 KIND,
                 ok=False,
                 hits=[],
                 started_ms=started,
-                error=f"request failed: {e}",
+                error=short,
                 fault_kind="down",
                 user_message="DuckDuckGo isn't reachable right now.",
                 what_to_do="Try again shortly; other providers already ran.",

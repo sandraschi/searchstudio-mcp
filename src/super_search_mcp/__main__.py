@@ -12,6 +12,9 @@ import logging
 import sys
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
+# Queries live in provider URLs - keep them out of stderr/MCP logs (issue #1.4).
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -30,7 +33,7 @@ def main(argv: list[str] | None = None) -> int:
         from .config import settings
 
         port = args.port or settings.backend_port
-        uvicorn.run(build_app(), host="127.0.0.1", port=port, log_level="info")
+        uvicorn.run(build_app(), host="127.0.0.1", port=port, log_level="info", access_log=False)
         return 0
 
     from .server import mcp

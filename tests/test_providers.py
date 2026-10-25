@@ -76,6 +76,72 @@ def test_wikipedia_maps_pages() -> None:
     assert len(out) == 1 and out[0].title == "Hollabrunn" and out[0].provider == "wikipedia"
 
 
+def test_wikipedia_sorts_by_index_not_alpha() -> None:
+    # Issue #1.2: MediaWiki pages object comes back alpha-by-title,
+    # rank lives in page["index"]. Sitagliptin (index 1) must win.
+    pages = {
+        "10": {
+            "title": "Sitagliptin",
+            "fullurl": "https://en.wikipedia.org/wiki/Sitagliptin",
+            "extract": "drug",
+            "index": 1,
+        },
+        "3": {
+            "title": "Aardvark",
+            "fullurl": "https://en.wikipedia.org/wiki/Aardvark",
+            "extract": "animal",
+            "index": 9,
+        },
+    }
+    out = map_pages(pages)
+    assert [h.title for h in out] == ["Sitagliptin", "Aardvark"]
+
+
+def test_wikipedia_pages_without_index_keep_order() -> None:
+    pages = {
+        "1": {"title": "B", "fullurl": "https://en.wikipedia.org/wiki/B"},
+        "2": {"title": "A", "fullurl": "https://en.wikipedia.org/wiki/A"},
+    }
+    out = map_pages(pages)
+    assert [h.title for h in out] == ["B", "A"]
+
+
+async def test_wikipedia_api_error_is_not_ok() -> None:
+    # Issue #1.3: HTTP 200 + {"error": ...} without "query" must be ok=False.
+    from super_search_mcp.providers import wikipedia as _wiki
+    from super_search_mcp.providers.wikipedia import WikipediaProvider
+
+    class _Resp:
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self) -> dict:
+            return {"error": {"code": "cirrussearch-too-long", "info": "query too long"}}
+
+    class _Client:
+        def __init__(self, *a: object, **k: object) -> None:
+            return None
+
+        async def __aenter__(self) -> "_Client":
+            return self
+
+        async def __aexit__(self, *a: object) -> bool:
+            return False
+
+        async def get(self, url: str) -> _Resp:
+            assert "wikipedia.org" in url
+            return _Resp()
+
+    real = _wiki._client
+    _wiki._client = _Client  # type: ignore[assignment]
+    try:
+        hits, receipt = await WikipediaProvider().search("x" * 400)
+    finally:
+        _wiki._client = real
+    assert hits == [] and receipt.ok is False
+    assert "wikipedia API error" in receipt.error
+
+
 def test_arxiv_maps_merged() -> None:
     papers = [
         {

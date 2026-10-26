@@ -22,10 +22,22 @@ WIKIMEDIA_UA = (
 )
 
 
+def _page_index(page) -> float:
+    if isinstance(page, dict):
+        try:
+            return float(page.get("index", float("inf")))
+        except (TypeError, ValueError):
+            return float("inf")
+    return float("inf")
+
+
 def map_pages(pages: dict) -> list[SearchHit]:
     """Map MediaWiki generator=search pages to hits. Pure function (tested)."""
     hits = []
-    for page in (pages or {}).values():
+    # MediaWiki does not return pages in rank order (formatversion=1: alpha
+    # by title, formatversion=2: by page id). Rank lives in page["index"].
+    ordered = sorted((pages or {}).values(), key=_page_index)
+    for page in ordered:
         title = page.get("title", "")
         url = page.get("fullurl", "")
         if not title or not url:
@@ -82,16 +94,38 @@ class WikipediaProvider:
                 resp.raise_for_status()
                 data = resp.json()
         except Exception as e:
+            status = getattr(getattr(e, "response", None), "status_code", None)
+            if status:
+                short = f"HTTP {status} from wikipedia"
+            else:
+                short = f"wikipedia failed ({type(e).__name__})"
             return [], _receipt(
                 NAME,
                 KIND,
                 ok=False,
                 hits=[],
                 started_ms=started,
-                error=f"request failed: {e}",
+                error=short,
                 fault_kind="down",
                 user_message="Wikipedia isn't reachable right now.",
                 what_to_do="Try again shortly; other providers already ran.",
+            )
+        if isinstance(data, dict) and data.get("error"):
+            err = data.get("error")
+            if isinstance(err, dict):
+                info = err.get("info", "MediaWiki error")
+            else:
+                info = str(err)
+            return [], _receipt(
+                NAME,
+                KIND,
+                ok=False,
+                hits=[],
+                started_ms=started,
+                error=f"wikipedia API error: {info}"[:300],
+                fault_kind="down",
+                user_message="Wikipedia answered with an error, not results.",
+                what_to_do="Try a shorter or simpler query; other providers already ran.",
             )
         hits = map_pages((data.get("query") or {}).get("pages", {}))[: max(limit, 1)]
         return hits, _receipt(NAME, KIND, ok=True, hits=hits, started_ms=started)

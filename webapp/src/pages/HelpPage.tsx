@@ -759,7 +759,8 @@ export default function HelpPage() {
             and pays (via keyed APIs) where you prefer not to.
             &quot;Breaker&quot; is our word for an authorized second-try path:
             it fires only after the direct fetch fails, every rescue is labeled
-            with its leg, and nothing runs unless you switch it on.
+            with its leg, and it is on by default - switch it off in Settings
+            or hard-off with empty BROWSER_MCP_URL.
           </p>
 
           <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">
@@ -792,8 +793,8 @@ export default function HelpPage() {
                 chain below is the authorized answer for DuckDuckGo-class
                 challenges; an armed FlareSolverr sidecar covers IUAM-class
                 Cloudflare barriers. Our posture is pragmatic, not preachy:
-                solvers and breakers run when you authorize them (Settings
-                switch, env), always marked, always bounded. Keyed APIs remain
+                solvers and breakers run on by default (Settings
+                switch to turn off, env hard-off), always marked, always bounded. Keyed APIs remain
                 the no-fuss path where you prefer not to break anything.
               </p>
             </div>
@@ -920,8 +921,8 @@ export default function HelpPage() {
             single trick is the design: the durable answer is fan-out across
             independent indexes, a receipt for every provider every time, and a
             health ledger that shows which pipes are dying this week. Ground
-            rules: solvers and breakers run only when you authorize them
-            (Settings switch, env hard-off); one attempt per leg, no hammering;
+            rules: solvers and breakers run on by default
+            (Settings switch to turn off, env hard-off); one attempt per leg, no hammering;
             no silent zeros; no unlabeled bypasses. Up to a point, by design:
             passive detection (fingerprints, automation flags, JS walls) is
             evaded by driving a real undetectable browser; active puzzles (image

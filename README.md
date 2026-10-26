@@ -64,8 +64,8 @@ blocks (HTTP 200 with confident junk), and markup drift. Without an authorized
 breaker we report `blocked`, never zero results.
 
 "Breaker" is our word for an authorized second try: it fires only after the
-direct fetch fails, every rescue is labeled with its leg, and nothing runs
-unless you switch it on. **Camoufox** (bridge render) is a Firefox fork built
+direct fetch fails, every rescue is labeled with its leg, and it is on by
+default - switch it off in Settings or hard-off with empty `BROWSER_MCP_URL`. **Camoufox** (bridge render) is a Firefox fork built
 for undetectability - the challenge detects automation, not humans, so it is
 simply never challenged. **FlareSolverr** (sidecar) drives undetected Chrome
 through Cloudflare IUAM challenges. Up to a point, by design: passive detection

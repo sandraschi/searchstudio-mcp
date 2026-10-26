@@ -90,7 +90,9 @@ class OpenSerpProvider:
                         resp.raise_for_status()
                         data = resp.json()
                     except Exception as e:
-                        last_error = f"{engine}: {e}"
+                        status = getattr(getattr(e, "response", None), "status_code", None)
+                        detail = f"HTTP {status}" if status else type(e).__name__
+                        last_error = f"{engine}: {detail}"
                         continue
                     results = data.get("results", data if isinstance(data, list) else [])
                     hits = map_results(results)[: max(limit, 1)]
@@ -111,13 +113,14 @@ class OpenSerpProvider:
                         )
                     last_error = f"{engine}: empty result set"
         except Exception as e:
+            short = f"openserp request failed ({type(e).__name__})"
             return [], _receipt(
                 NAME,
                 KIND,
                 ok=False,
                 hits=[],
                 started_ms=started,
-                error=f"OpenSERP-local request failed: {e}",
+                error=short,
                 fault_kind="down",
                 user_message="OpenSERP service isn't reachable.",
                 what_to_do="Start Docker Desktop with the openserp container on :7000.",
